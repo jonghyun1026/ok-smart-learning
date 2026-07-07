@@ -1,0 +1,204 @@
+{
+  "version": "2026-07-06",
+  "source": "OK금융그룹 2025-2026년 스마트러닝 위탁운영 제안요청서 (blueprint-ok-hakdang-rfp-system.md 기반 신규 도출, 실사용 전 담당자 검수 필요)",
+  "totalPoints": 100,
+  "technicalTotalPoints": 80,
+  "priceTotalPoints": 20,
+  "negotiationThreshold": 85,
+  "tiebreakOrder": ["OPERATION", "CONTENT"],
+  "priceFormula": {
+    "description": "20 × 최저입찰가 ÷ 해당업체입찰가, 소수 둘째자리 반올림, 상한 20점",
+    "formula": "round(20 * lowestBidPrice / companyBidPrice, 2)",
+    "cap": 20
+  },
+  "areas": [
+    {
+      "code": "PF",
+      "name": "필수 자격",
+      "type": "pass_fail",
+      "maxPoints": null,
+      "rfpReference": "Ⅲ.1 참가자격",
+      "items": [
+        {
+          "no": "0-1",
+          "name": "계약결격사유 없음 (국가계약법 등)",
+          "type": "pass_fail",
+          "points": null,
+          "docs": "사업자등록증, 법인등기부등본"
+        },
+        {
+          "no": "0-2",
+          "name": "원격평생교육시설 신고 업체 여부",
+          "type": "pass_fail",
+          "points": null,
+          "docs": "신고증빙"
+        }
+      ]
+    },
+    {
+      "code": "GENERAL",
+      "name": "일반부문",
+      "type": "score",
+      "maxPoints": 10,
+      "rfpReference": "Ⅲ.3 \"일반부문\" + 제안서 포함항목 Ⅰ (일반현황/재무상태/사업수행능력)",
+      "items": [
+        {
+          "no": "1",
+          "name": "경영현황 및 재무안정성",
+          "type": "score",
+          "points": 4,
+          "docs": "재무제표/부가세과세증명원"
+        },
+        {
+          "no": "2",
+          "name": "사업수행실적(순수 위탁교육 실적)",
+          "type": "score",
+          "points": 4,
+          "docs": "사업수행실적증명서"
+        },
+        {
+          "no": "3",
+          "name": "전담인력 배치계획(PM/R&R)",
+          "type": "score",
+          "points": 2,
+          "docs": "참여인력 구성도"
+        }
+      ]
+    },
+    {
+      "code": "CONTENT",
+      "name": "콘텐츠부문",
+      "type": "score",
+      "maxPoints": 25,
+      "rfpReference": "Ⅲ.3 \"콘텐츠부문\" + Ⅰ.용역개요 콘텐츠 제공 요구사항",
+      "items": [
+        {
+          "no": "4",
+          "name": "보유 콘텐츠 양·다양성(직무/리더십/어학 등)",
+          "type": "score",
+          "points": 8,
+          "docs": "제안서 콘텐츠 목록"
+        },
+        {
+          "no": "5",
+          "name": "콘텐츠 최신성 및 업데이트 주기(법정필수교육 포함)",
+          "type": "score",
+          "points": 6,
+          "docs": "제안서"
+        },
+        {
+          "no": "6",
+          "name": "생성형 AI·데이터 리터러시 등 신기술 콘텐츠 보유/개발계획",
+          "type": "score",
+          "points": 6,
+          "docs": "제안서"
+        },
+        {
+          "no": "7",
+          "name": "자체 제작 콘텐츠 무상 탑재 및 운영 지원",
+          "type": "score",
+          "points": 5,
+          "docs": "제안서"
+        }
+      ]
+    },
+    {
+      "code": "OPERATION",
+      "name": "운영부문",
+      "type": "score",
+      "maxPoints": 25,
+      "rfpReference": "Ⅲ.3 \"운영부문\" + Ⅱ.1 교육 운영 관련 사항",
+      "items": [
+        {
+          "no": "8",
+          "name": "운영전략 및 추진계획의 타당성",
+          "type": "score",
+          "points": 5,
+          "docs": "제안서"
+        },
+        {
+          "no": "9",
+          "name": "학습독려 및 참여활성화 방안",
+          "type": "score",
+          "points": 5,
+          "docs": "제안서"
+        },
+        {
+          "no": "10",
+          "name": "학습자 관리(콜센터 09~18시, VOC 대응) 체계",
+          "type": "score",
+          "points": 5,
+          "docs": "제안서"
+        },
+        {
+          "no": "11",
+          "name": "교육결과 보고 및 사후관리 체계",
+          "type": "score",
+          "points": 5,
+          "docs": "제안서"
+        },
+        {
+          "no": "12",
+          "name": "부가서비스(부정수강 모니터링, 맞춤 추천 등)",
+          "type": "score",
+          "points": 5,
+          "docs": "제안서"
+        }
+      ]
+    },
+    {
+      "code": "SYSTEM",
+      "name": "시스템부문",
+      "type": "score",
+      "maxPoints": 20,
+      "rfpReference": "Ⅲ.3 \"시스템부문\" + Ⅱ.2 시스템 운영 및 관리, Ⅱ.3 보안 관련 사항",
+      "items": [
+        {
+          "no": "13",
+          "name": "웹/모바일 학습 플랫폼 사용 편의성",
+          "type": "score",
+          "points": 5,
+          "docs": "제안서, 화면 예시"
+        },
+        {
+          "no": "14",
+          "name": "해외법인(인도네시아·캄보디아 등) 접속 지원 등 안정성",
+          "type": "score",
+          "points": 5,
+          "docs": "제안서"
+        },
+        {
+          "no": "15",
+          "name": "정보보안 대책(개인정보보호, DB보안)",
+          "type": "score",
+          "points": 6,
+          "docs": "정보보안 대책서"
+        },
+        {
+          "no": "16",
+          "name": "장애대응 및 유지보수 체계",
+          "type": "score",
+          "points": 4,
+          "docs": "제안서"
+        }
+      ]
+    },
+    {
+      "code": "PRICE",
+      "name": "가격평가",
+      "type": "score",
+      "maxPoints": 20,
+      "rfpReference": "Ⅲ.3 \"입찰가격 평가 20%\"",
+      "items": [
+        {
+          "no": "17",
+          "name": "입찰가격 환산 점수",
+          "type": "score",
+          "points": 20,
+          "docs": "가격입찰서",
+          "formula": "20 × 최저입찰가 ÷ 해당업체입찰가, 소수 둘째자리 반올림, 상한 20점"
+        }
+      ]
+    }
+  ]
+}

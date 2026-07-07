@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      tailwind = { config: { corePlugins: { preflight: false } } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR%3Awght%40100..900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      *, ::before, ::after {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="relative w-[1440px] h-[1659px]">
+      <div
+        data-pencil-name="Badge"
+        class="box-border w-fit h-fit absolute left-0 top-[1200px] flex flex-row gap-0 p-[5px_14px] justify-start items-center bg-[#E6E6DF] rounded-[100px]"
+      >
+        <div
+          data-pencil-name="Label"
+          class="text-[13px]/[normal] box-border text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+        >
+          라벨
+        </div>
+      </div>
+      <div
+        data-pencil-name="FormField"
+        class="box-border w-[400px] h-fit absolute left-0 top-[1350px] flex flex-col gap-[6px] justify-start items-start"
+      >
+        <div
+          data-pencil-name="Label"
+          class="text-[13px]/[normal] box-border text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+        >
+          필드 라벨
+        </div>
+        <div
+          data-pencil-name="Input"
+          class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[10px_12px] justify-start items-center bg-[#FFFFFF] [border:1px_solid_#D6D6CC] rounded-[8px]"
+        >
+          <div
+            data-pencil-name="Placeholder"
+            class="text-[14px]/[normal] box-border [flex:1_1_0] text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left"
+          >
+            입력값 예시
+          </div>
+        </div>
+      </div>
+      <div
+        data-pencil-name="SelectField"
+        class="box-border w-[400px] h-fit absolute left-0 top-[1500px] flex flex-col gap-[6px] justify-start items-start"
+      >
+        <div
+          data-pencil-name="Label"
+          class="text-[13px]/[normal] box-border text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+        >
+          선택 라벨
+        </div>
+        <div
+          data-pencil-name="Input"
+          class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[10px_12px] justify-between items-center bg-[#FFFFFF] [border:1px_solid_#D6D6CC] rounded-[8px]"
+        >
+          <div
+            data-pencil-name="Value"
+            class="text-[14px]/[normal] box-border text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+          >
+            선택값
+          </div>
+          <svg
+            data-pencil-name="Chevron"
+            data-icon-name="chevron-down"
+            data-icon-set="lucide"
+            viewBox="0 0 13.99993896484375 14"
+            preserveAspectRatio="xMidYMid meet"
+            xmlns="http://www.w3.org/2000/svg"
+            class="box-border w-[16px] shrink-0 h-[16px]"
+          >
+            <path
+              d="M3.34619 4.68945q-0.25293 0.08545-0.37939 0.30762-0.04102 0.08545-0.04102 0.25293 0 0.16748 0.04785 0.25977 0.05127 0.08887 1.8628 1.9038 1.81494 1.81152 1.9038 1.8628 0.09229 0.04785 0.25977 0.04785 0.16748 0 0.25635-0.04785 0.09229-0.05127 1.90381-1.8628 1.81494-1.81494 1.86279-1.9038 0.05127-0.09229 0.05127-0.25977 0-0.16748-0.04102-0.25293-0.09912-0.16748-0.28027-0.2666-0.05811-0.02734-0.09912-0.04102-0.04102-0.01367-0.15381-0.01367-0.11279 0-0.15381 0.01367-0.04101 0.01367-0.11279 0.04102-0.09912 0.05811-1.66455 1.62695l-1.56885 1.56543-2.82666-2.81299q-0.31104-0.29395-0.42041-0.37939-0.08545-0.05469-0.19824-0.05469l-0.02735 0q-0.14014 0-0.18115 0.01367z"
+              fill="#736A73"
+            ></path>
+          </svg>
+        </div>
+      </div>
+      <div
+        data-pencil-name="PrimaryButton"
+        class="box-border w-fit h-fit absolute left-0 top-[1600px] flex flex-row gap-0 p-[12px_28px] justify-center items-center bg-[#F04E23] rounded-[8px]"
+      >
+        <div
+          data-pencil-name="Label"
+          class="text-[14px]/[normal] box-border text-[#FFFFFF] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+        >
+          저장
+        </div>
+      </div>
+      <div
+        data-pencil-name="ScreenA-평가개요"
+        class="box-border w-[1440px] h-fit absolute left-0 top-0 flex flex-col gap-0 justify-start items-start bg-[#FFFFFF] overflow-hidden"
+      >
+        <div
+          data-pencil-name="Header"
+          class="box-border w-full h-fit shrink-0 flex flex-col gap-0 justify-start items-start bg-[#FFFFFF] [border-width:0px_0px_1px_0px] [border-style:solid] [border-color:#D6D6CC]"
+        >
+          <div
+            data-pencil-name="TopRow"
+            class="box-border w-full h-[72px] shrink-0 flex flex-row gap-0 p-[0px_64px] justify-between items-center"
+          >
+            <div
+              data-pencil-name="LogoBox"
+              class="box-border w-fit shrink-0 h-fit flex flex-row gap-[16px] justify-start items-center"
+            >
+              <div
+                data-pencil-name="Logo"
+                class="box-border w-[150px] shrink-0 h-[26px] bg-[url('../../../Desktop/OK학당_재계약/로고/OK금융그룹_로고(2026)/RGB/로고_OK금융그룹_08.png')] bg-no-repeat bg-contain bg-center"
+              ></div>
+              <div
+                data-pencil-name="Divider"
+                class="box-border w-[1px] shrink-0 h-[24px] bg-[#D6D6CC]"
+              ></div>
+              <div
+                data-pencil-name="SiteTitle"
+                class="text-[16px]/[normal] box-border text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+              >
+                OK학당 스마트러닝 위탁운영 재계약 평가시스템
+              </div>
+            </div>
+            <div
+              data-pencil-name="Hint"
+              class="text-[12px]/[normal] box-border text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left [white-space:nowrap]"
+            >
+              인증 없음 · URL 공유 기반 접근
+            </div>
+          </div>
+          <div
+            data-pencil-name="Tabs"
+            class="box-border w-full h-fit shrink-0 flex flex-row gap-[8px] p-[0px_64px] justify-start items-start"
+          >
+            <div
+              data-pencil-name="Tab-평가개요"
+              class="box-border w-fit shrink-0 h-fit flex flex-row gap-0 p-[14px_4px] justify-start items-start [border-width:0px_0px_3px_0px] [border-style:solid] [border-color:#F04E23]"
+            >
+              <div
+                data-pencil-name="Label"
+                class="text-[14px]/[normal] box-border text-[#F04E23] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+              >
+                평가개요
+              </div>
+            </div>
+            <div
+              data-pencil-name="Tab-세부평가기준"
+              class="box-border w-fit shrink-0 h-fit flex flex-row gap-0 p-[14px_4px] justify-start items-start [border-width:0px_0px_3px_0px] [border-style:solid] [border-color:#00000000]"
+            >
+              <div
+                data-pencil-name="Label"
+                class="text-[14px]/[normal] box-border text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+              >
+                세부평가기준
+              </div>
+            </div>
+            <div
+              data-pencil-name="Tab-평가입력"
+              class="box-border w-fit shrink-0 h-fit flex flex-row gap-0 p-[14px_4px] justify-start items-start [border-width:0px_0px_3px_0px] [border-style:solid] [border-color:#00000000]"
+            >
+              <div
+                data-pencil-name="Label"
+                class="text-[14px]/[normal] box-border text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+              >
+                평가입력
+              </div>
+            </div>
+            <div
+              data-pencil-name="Tab-관리자"
+              class="box-border w-fit shrink-0 h-fit flex flex-row gap-0 p-[14px_4px] justify-start items-start [border-width:0px_0px_3px_0px] [border-style:solid] [border-color:#00000000]"
+            >
+              <div
+                data-pencil-name="Label"
+                class="text-[14px]/[normal] box-border text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+              >
+                관리자
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          data-pencil-name="Body"
+          class="box-border w-full h-fit shrink-0 flex flex-col gap-[24px] p-[48px_64px] justify-start items-start"
+        >
+          <div
+            data-pencil-name="Hero"
+            class="box-border w-full h-fit shrink-0 flex flex-row gap-[32px] p-[32px] justify-start items-center bg-[#E6E6DF] rounded-[12px]"
+          >
+            <div
+              data-pencil-name="HeroLogo"
+              class="box-border w-[96px] shrink-0 h-[96px] flex flex-row gap-0 justify-center items-center bg-[#FFFFFF] rounded-[16px]"
+            >
+              <div
+                data-pencil-name="Symbol"
+                class="box-border w-[56px] shrink-0 h-[56px] bg-[url('../../../Desktop/OK학당_재계약/로고/OK금융그룹_로고(2026)/RGB/로고_OK금융그룹_04.png')] bg-no-repeat bg-contain bg-center"
+              ></div>
+            </div>
+            <div
+              data-pencil-name="HeroText"
+              class="box-border [flex:1_1_0] h-fit flex flex-col gap-[8px] justify-start items-start"
+            >
+              <div
+                class="text-[26px]/[normal] box-border w-full text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-black text-left"
+              >
+                2025~2026년 OK학당 스마트러닝 교육 위탁운영 용역 (재계약)
+              </div>
+              <div
+                class="text-[15px]/[normal] box-border w-full text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left"
+              >
+                현 계약기간 2025.9.1 ~ 2026.8.31 · 계약 종료 전 재계약 절차 진행 중
+              </div>
+            </div>
+          </div>
+          <div
+            data-pencil-name="RfpBox"
+            class="box-border w-full h-fit shrink-0 flex flex-row gap-[20px] p-[20px] justify-between items-center [border:1px_solid_#D6D6CC] rounded-[12px]"
+          >
+            <div
+              data-pencil-name="TextCol"
+              class="box-border [flex:1_1_0] h-fit flex flex-col gap-[4px] justify-start items-start"
+            >
+              <div
+                class="text-[15px]/[normal] box-border text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+              >
+                평가 기준 안내 RFP (참고용)
+              </div>
+              <div
+                class="text-[13px]/[normal] box-border w-full text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left"
+              >
+                제안요청서(RFP) 원문 전체는 아래 버튼으로 다운로드하여 확인할 수 있습니다.
+              </div>
+            </div>
+            <div
+              data-pencil-name="DownloadBtn"
+              class="box-border w-fit shrink-0 h-fit flex flex-row gap-[8px] p-[12px_20px] justify-start items-center bg-[#F04E23] rounded-[8px]"
+            >
+              <svg
+                data-icon-name="download"
+                data-icon-set="lucide"
+                viewBox="0 0 13.99993896484375 14"
+                preserveAspectRatio="xMidYMid meet"
+                xmlns="http://www.w3.org/2000/svg"
+                class="box-border w-[16px] shrink-0 h-[16px]"
+              >
+                <path
+                  d="M6.84619 1.18945q-0.25293 0.08545-0.37939 0.30762l-0.04102 0.08545 0 5.75244-0.99463-0.99463q-0.62891-0.62891-0.83398-0.81689-0.20166-0.18799-0.25635-0.21875-0.19824-0.08203-0.3999-0.02393-0.20166 0.05469-0.32813 0.21533-0.12646 0.16064-0.11279 0.36914l0 0.02735q0.01367 0.11279 0.06836 0.19824 0.07178 0.11279 0.36572 0.42041l1.20313 1.20313q1.52783 1.52441 1.59619 1.56884 0.05811 0.02734 0.10596 0.03418 0.04785 0.00684 0.16064 0.00684 0.11279 0 0.16064-0.00684 0.04785-0.00684 0.10596-0.03418 0.06836-0.04443 1.59619-1.56884 1.03564-1.03564 1.28516-1.30225 0.25293-0.2666 0.29736-0.33496 0.0957-0.22559 0.01026-0.44776-0.08203-0.22559-0.32129-0.33837-0.08203-0.02734-0.22217-0.02735l-0.02734 0q-0.12646 0-0.19825 0.02735-0.0957 0.05811-0.30761 0.25293-0.15381 0.15381-0.69727 0.70068l-1.10742 1.09033 0-5.75244-0.04102-0.08545q-0.09912-0.18115-0.28027-0.2666-0.08545-0.04102-0.22559-0.04785-0.14014-0.00684-0.18115 0.00683z m-5.25 7q-0.25293 0.08545-0.37939 0.30762l-0.04102 0.08545 0.01367 2.60449q0 0.23584 0.02735 0.30762 0.14014 0.48877 0.46826 0.82031 0.33154 0.32813 0.82031 0.46826 0.08545 0.02734 0.71436 0.02735l3.78027 0.01367 3.78027-0.01367q0.62891 0 0.71436-0.02735 0.48877-0.14014 0.81689-0.46826 0.33154-0.33154 0.47168-0.82031 0.02734-0.07178 0.02735-0.30762l0.01367-2.60449-0.04102-0.08545q-0.09912-0.16748-0.28027-0.2666-0.05811-0.02734-0.09912-0.04102-0.04102-0.01367-0.15381-0.01367-0.11279 0-0.15381 0.01367-0.04101 0.01367-0.09912 0.04102-0.18115 0.09912-0.28027 0.2666l-0.04102 0.08545-0.01367 2.63183-0.04102 0.09913q-0.14014 0.27685-0.43408 0.33496-0.09912 0.02734-4.18701 0.02734-4.08789 0-4.18701-0.02734-0.29395-0.05811-0.43408-0.33496l-0.04102-0.09913-0.01367-2.63183-0.04102-0.08545q-0.09912-0.18115-0.28027-0.2666-0.08545-0.04102-0.22559-0.04785-0.14014-0.00684-0.18115 0.00683z"
+                  fill="#FFFFFF"
+                ></path>
+              </svg>
+              <div
+                class="text-[14px]/[normal] box-border text-[#FFFFFF] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+              >
+                RFP 원문 다운로드
+              </div>
+            </div>
+          </div>
+          <div
+            class="text-[20px]/[normal] box-border text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+          >
+            사업 정보
+          </div>
+          <div
+            data-pencil-name="BizInfoRow"
+            class="box-border w-full h-fit shrink-0 flex flex-row gap-[24px] justify-start items-start"
+          >
+            <div
+              data-pencil-name="BizGrid"
+              class="box-border [flex:1_1_0] h-fit flex flex-col gap-0 justify-start items-start [border:1px_solid_#D6D6CC] rounded-[12px] overflow-hidden"
+            >
+              <div
+                data-pencil-name="Row-사업명"
+                class="box-border w-full h-fit shrink-0 flex flex-row gap-0 justify-start items-start"
+              >
+                <div
+                  data-pencil-name="Label"
+                  class="box-border w-[160px] shrink-0 h-fit flex flex-row gap-0 p-[16px] justify-start items-start bg-[#E6E6DF]"
+                >
+                  <div
+                    class="text-[14px]/[normal] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+                  >
+                    사업명
+                  </div>
+                </div>
+                <div
+                  data-pencil-name="Value"
+                  class="box-border [flex:1_1_0] h-fit flex flex-row gap-0 p-[16px] justify-start items-start"
+                >
+                  <div
+                    class="text-[14px]/[20px] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left"
+                  >
+                    2025~2026년 OK학당 스마트러닝 교육 위탁운영 용역 (재계약)
+                  </div>
+                </div>
+              </div>
+              <div
+                data-pencil-name="Row-계약기간"
+                class="box-border w-full h-fit shrink-0 flex flex-row gap-0 justify-start items-start [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+              >
+                <div
+                  data-pencil-name="Label"
+                  class="box-border w-[160px] shrink-0 h-fit flex flex-row gap-0 p-[16px] justify-start items-start bg-[#E6E6DF]"
+                >
+                  <div
+                    class="text-[14px]/[normal] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+                  >
+                    계약기간
+                  </div>
+                </div>
+                <div
+                  data-pencil-name="Value"
+                  class="box-border [flex:1_1_0] h-fit flex flex-row gap-0 p-[16px] justify-start items-start"
+                >
+                  <div
+                    class="text-[14px]/[20px] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left"
+                  >
+                    2025.9.1 ~ 2026.8.31 (재계약 절차 진행)
+                  </div>
+                </div>
+              </div>
+              <div
+                data-pencil-name="Row-교육대상인원"
+                class="box-border w-full h-fit shrink-0 flex flex-row gap-0 justify-start items-start [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+              >
+                <div
+                  data-pencil-name="Label"
+                  class="box-border w-[160px] shrink-0 h-fit flex flex-row gap-0 p-[16px] justify-start items-start bg-[#E6E6DF]"
+                >
+                  <div
+                    class="text-[14px]/[normal] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+                  >
+                    교육대상인원
+                  </div>
+                </div>
+                <div
+                  data-pencil-name="Value"
+                  class="box-border [flex:1_1_0] h-fit flex flex-row gap-0 p-[16px] justify-start items-start"
+                >
+                  <div
+                    class="text-[14px]/[20px] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left"
+                  >
+                    연간 약 1,800명 (예상수강인원, 계약 후 추가인원 협의)
+                  </div>
+                </div>
+              </div>
+              <div
+                data-pencil-name="Row-위탁범위"
+                class="box-border w-full h-fit shrink-0 flex flex-row gap-0 justify-start items-start [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+              >
+                <div
+                  data-pencil-name="Label"
+                  class="box-border w-[160px] shrink-0 h-fit flex flex-row gap-0 p-[16px] justify-start items-start bg-[#E6E6DF]"
+                >
+                  <div
+                    class="text-[14px]/[normal] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+                  >
+                    위탁범위
+                  </div>
+                </div>
+                <div
+                  data-pencil-name="Value"
+                  class="box-border [flex:1_1_0] h-fit flex flex-row gap-0 p-[16px] justify-start items-start"
+                >
+                  <div
+                    class="text-[14px]/[20px] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left"
+                  >
+                    콘텐츠 제공 · 온라인 러닝플랫폼 제공 · 운영/수강관리 · 교육결과 제공 ·
+                    부가서비스
+                  </div>
+                </div>
+              </div>
+              <div
+                data-pencil-name="Row-선정방식"
+                class="box-border w-full h-fit shrink-0 flex flex-row gap-0 justify-start items-start [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+              >
+                <div
+                  data-pencil-name="Label"
+                  class="box-border w-[160px] shrink-0 h-fit flex flex-row gap-0 p-[16px] justify-start items-start bg-[#E6E6DF]"
+                >
+                  <div
+                    class="text-[14px]/[normal] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+                  >
+                    선정방식
+                  </div>
+                </div>
+                <div
+                  data-pencil-name="Value"
+                  class="box-border [flex:1_1_0] h-fit flex flex-row gap-0 p-[16px] justify-start items-start"
+                >
+                  <div
+                    class="text-[14px]/[20px] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left"
+                  >
+                    공개경쟁입찰 (제안서 기술평가 80% + 입찰가격 평가 20%)
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              data-pencil-name="BizImageBox"
+              class="box-border w-[180px] shrink-0 h-[180px] flex flex-row gap-0 justify-center items-center bg-[#E6E6DF] rounded-[12px]"
+            >
+              <div
+                data-pencil-name="Symbol"
+                class="box-border w-[96px] shrink-0 h-[96px] bg-[url('../../../Desktop/OK학당_재계약/로고/OK금융그룹_로고(2026)/RGB/로고_OK금융그룹_04.png')] bg-no-repeat bg-contain bg-center"
+              ></div>
+            </div>
+          </div>
+          <div
+            class="text-[20px]/[normal] box-border text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+          >
+            입찰 일정
+          </div>
+          <div
+            data-pencil-name="ScheduleTable2"
+            class="box-border w-full h-fit shrink-0 flex flex-col gap-0 justify-start items-start [border:1px_solid_#D6D6CC] rounded-[12px] overflow-hidden"
+          >
+            <div
+              data-pencil-name="HeaderRow"
+              class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[12px_16px] justify-start items-start bg-[#3F363F]"
+            >
+              <div
+                class="text-[13px]/[normal] box-border w-[220px] shrink-0 text-[#FFFFFF] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                일정
+              </div>
+              <div
+                class="text-[13px]/[normal] box-border [flex:1_1_0] text-[#FFFFFF] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                내용
+              </div>
+            </div>
+            <div
+              data-pencil-name="Row-0"
+              class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[12px_16px] justify-start items-start bg-[#FFFFFF] [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+            >
+              <div
+                class="text-[14px]/[normal] box-border w-[220px] shrink-0 text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                2026.07.07
+              </div>
+              <div
+                class="text-[14px]/[20px] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left"
+              >
+                입찰공고 게시
+              </div>
+            </div>
+            <div
+              data-pencil-name="Row-1"
+              class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[12px_16px] justify-start items-start bg-[#F7F7F3] [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+            >
+              <div
+                class="text-[14px]/[normal] box-border w-[220px] shrink-0 text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                ~2026.07.16
+              </div>
+              <div
+                class="text-[14px]/[20px] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left"
+              >
+                입찰공고 마감
+              </div>
+            </div>
+            <div
+              data-pencil-name="Row-2"
+              class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[12px_16px] justify-start items-start bg-[#FFFFFF] [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+            >
+              <div
+                class="text-[14px]/[normal] box-border w-[220px] shrink-0 text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                ~2026.07.31
+              </div>
+              <div
+                class="text-[14px]/[20px] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left"
+              >
+                제안서 및 견적서 비교, 업체 평가 및 선정, 일상감사 서류 제출(품의서, 계약서, 제안서
+                등)
+              </div>
+            </div>
+            <div
+              data-pencil-name="Row-3"
+              class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[12px_16px] justify-start items-start bg-[#F7F7F3] [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+            >
+              <div
+                class="text-[14px]/[normal] box-border w-[220px] shrink-0 text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                ~2026.08.29
+              </div>
+              <div
+                class="text-[14px]/[20px] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left"
+              >
+                일상감사 보완, 계약서 날인
+              </div>
+            </div>
+          </div>
+          <div
+            data-pencil-name="ScoreConfigTitleRow"
+            class="box-border w-full h-fit shrink-0 flex flex-row gap-0 justify-between items-center"
+          >
+            <div
+              class="text-[20px]/[normal] box-border text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+            >
+              평가 배점 구성
+            </div>
+            <div
+              class="text-[13px]/[normal] box-border text-[#F04E23] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+            >
+              세부 항목은 [세부평가기준] 탭에서 확인
+            </div>
+          </div>
+          <div
+            data-pencil-name="ScoreConfigTable"
+            class="box-border w-full h-fit shrink-0 flex flex-col gap-0 justify-start items-start [border:1px_solid_#D6D6CC] rounded-[12px] overflow-hidden"
+          >
+            <div
+              data-pencil-name="HeaderRow"
+              class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[12px_16px] justify-start items-start bg-[#3F363F]"
+            >
+              <div
+                class="text-[13px]/[normal] box-border w-[60px] shrink-0 text-[#FFFFFF] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                #
+              </div>
+              <div
+                class="text-[13px]/[normal] box-border [flex:1_1_0] text-[#FFFFFF] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                평가영역
+              </div>
+              <div
+                class="text-[13px]/[normal] box-border w-[160px] shrink-0 text-[#FFFFFF] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-right"
+              >
+                배점
+              </div>
+            </div>
+            <div
+              data-pencil-name="Row-①"
+              class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[12px_16px] justify-start items-start bg-[#FFFFFF] [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+            >
+              <div
+                class="text-[14px]/[normal] box-border w-[60px] shrink-0 text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                ①
+              </div>
+              <div
+                class="text-[14px]/[normal] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                필수 자격
+              </div>
+              <div
+                class="text-[14px]/[normal] box-border w-[160px] shrink-0 text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-right"
+              >
+                게이트 (Pass/Fail)
+              </div>
+            </div>
+            <div
+              data-pencil-name="Row-②"
+              class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[12px_16px] justify-start items-start bg-[#F7F7F3] [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+            >
+              <div
+                class="text-[14px]/[normal] box-border w-[60px] shrink-0 text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                ②
+              </div>
+              <div
+                class="text-[14px]/[normal] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                일반부문
+              </div>
+              <div
+                class="text-[14px]/[normal] box-border w-[160px] shrink-0 text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-right"
+              >
+                10점
+              </div>
+            </div>
+            <div
+              data-pencil-name="Row-③"
+              class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[12px_16px] justify-start items-start bg-[#FFFFFF] [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+            >
+              <div
+                class="text-[14px]/[normal] box-border w-[60px] shrink-0 text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                ③
+              </div>
+              <div
+                class="text-[14px]/[normal] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                콘텐츠부문
+              </div>
+              <div
+                class="text-[14px]/[normal] box-border w-[160px] shrink-0 text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-right"
+              >
+                25점
+              </div>
+            </div>
+            <div
+              data-pencil-name="Row-④"
+              class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[12px_16px] justify-start items-start bg-[#F7F7F3] [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+            >
+              <div
+                class="text-[14px]/[normal] box-border w-[60px] shrink-0 text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                ④
+              </div>
+              <div
+                class="text-[14px]/[normal] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                운영부문
+              </div>
+              <div
+                class="text-[14px]/[normal] box-border w-[160px] shrink-0 text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-right"
+              >
+                25점
+              </div>
+            </div>
+            <div
+              data-pencil-name="Row-⑤"
+              class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[12px_16px] justify-start items-start bg-[#FFFFFF] [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+            >
+              <div
+                class="text-[14px]/[normal] box-border w-[60px] shrink-0 text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                ⑤
+              </div>
+              <div
+                class="text-[14px]/[normal] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                시스템부문
+              </div>
+              <div
+                class="text-[14px]/[normal] box-border w-[160px] shrink-0 text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-right"
+              >
+                20점
+              </div>
+            </div>
+            <div
+              data-pencil-name="Row-⑥"
+              class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[12px_16px] justify-start items-start bg-[#F7F7F3] [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+            >
+              <div
+                class="text-[14px]/[normal] box-border w-[60px] shrink-0 text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                ⑥
+              </div>
+              <div
+                class="text-[14px]/[normal] box-border [flex:1_1_0] text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left"
+              >
+                가격평가
+              </div>
+              <div
+                class="text-[14px]/[normal] box-border w-[160px] shrink-0 text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-right"
+              >
+                20점
+              </div>
+            </div>
+            <div
+              data-pencil-name="TotalRow"
+              class="box-border w-full h-fit shrink-0 flex flex-row gap-0 p-[14px_16px] justify-start items-center bg-[#F04E23] [border-width:1px_0px_0px_0px] [border-style:solid] [border-color:#D6D6CC]"
+            >
+              <div
+                class="text-[15px]/[normal] box-border w-[60px] shrink-0 text-[#FFFFFF] font-['Noto_Sans_KR',system-ui,sans-serif] font-black text-left"
+              ></div>
+              <div
+                class="text-[15px]/[normal] box-border [flex:1_1_0] text-[#FFFFFF] font-['Noto_Sans_KR',system-ui,sans-serif] font-black text-left"
+              >
+                합계 (기술 80점 + 가격 20점)
+              </div>
+              <div
+                class="text-[16px]/[normal] box-border w-[160px] shrink-0 text-[#FFFFFF] font-['Noto_Sans_KR',system-ui,sans-serif] font-black text-right"
+              >
+                100점
+              </div>
+            </div>
+          </div>
+        </div>
+        <div
+          data-pencil-name="Footer"
+          class="box-border w-full h-fit shrink-0 flex flex-col gap-[6px] p-[32px_64px] justify-start items-start bg-[#E6E6DF]"
+        >
+          <div
+            class="text-[13px]/[normal] box-border text-[#3F363F] font-['Noto_Sans_KR',system-ui,sans-serif] font-bold text-left [white-space:nowrap]"
+          >
+            OK금융그룹 인재개발원 · 문의: okhakdang-rfp@okgroup.co.kr / 02-0000-0000
+          </div>
+          <div
+            class="text-[12px]/[normal] box-border w-full text-[#736A73] font-['Noto_Sans_KR',system-ui,sans-serif] font-normal text-left"
+          >
+            본 시스템은 오프라인으로 접수된 제출자료를 평가·비교하기 위한 내부용 도구이며,
+            배점·가격산식·동점규칙은 담당자 최종 검수 후 확정됩니다.
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
