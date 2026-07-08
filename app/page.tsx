@@ -171,8 +171,10 @@ export default async function OverviewPage() {
             }`}
           >
             <div className="w-[220px] shrink-0 text-sm font-bold text-brand-dark">
-              {phase.prefix ?? ""}
-              {phase.date.replaceAll("-", ".")}
+              {phase.displayDate ??
+                (phase.dateStart
+                  ? `${phase.dateStart.replaceAll("-", ".")} ~ ${phase.date.replaceAll("-", ".")}`
+                  : `${phase.prefix ?? ""}${phase.date.replaceAll("-", ".")}`)}
             </div>
             <div className="flex-1 text-sm leading-5 text-brand-dark">{phase.label}</div>
           </div>
