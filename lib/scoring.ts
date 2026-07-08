@@ -67,7 +67,7 @@ export type CriteriaData = {
 
 const DEFAULT_SETTINGS: EvaluationSettings = {
   negotiationThreshold: 85,
-  tiebreakAreaCodes: ["OPERATION", "CONTENT"],
+  tiebreakAreaCodes: ["PRICE"],
 };
 
 /** criteria 테이블 원본 행 + evaluation_settings 행을 받아 런타임 계산 상수를 조립한다. */

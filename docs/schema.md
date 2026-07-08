@@ -78,14 +78,14 @@ left join evaluations e on e.company_id = c.id
 group by c.id, c.name, c.bid_price, c.qualification_pass;
 ```
 
-업체별 평가자 평균 점수와 협상적격 여부(합계 ≥85 AND 필수자격 Pass)를 계산. **동점 처리(운영부문 → 콘텐츠부문 순 재비교)는 뷰가 아닌 애플리케이션(`/lib/scoring.ts`)에서 처리** — SQL 뷰만으로는 가정 기반 동점 규칙을 표현하기 번거롭고, 규칙 변경 시 코드만 수정하면 되도록 분리.
+업체별 평가자 평균 점수와 협상적격 여부(합계 ≥85 AND 필수자격 Pass)를 계산. **동점 처리(가격평가 점수 높은 업체 우선)는 뷰가 아닌 애플리케이션(`/lib/scoring.ts`)에서 처리** — SQL 뷰만으로는 가정 기반 동점 규칙을 표현하기 번거롭고, 규칙 변경 시 코드만 수정하면 되도록 분리.
 
 ## 2.5 평가기준 자유편집 (2026-07-06 추가, Step 3.5)
 
 관리자가 세부평가기준의 **영역(카테고리) 자체와 항목을 자유롭게 추가·삭제·수정**할 수 있어야 한다는 요구에 따라 `criteria` 테이블이 정적 `/data/criteria.json` 대신 **단일 진실 소스**가 된다.
 
 - `criteria.item_type`에 `'price'` 추가 (`pass_fail` / `score` / `price`) — item_no='17' 가격항목을 하드코딩 없이 식별하기 위함
-- `evaluation_settings` 테이블(단일행, id=1) 신설: `negotiation_threshold`(기본 85), `tiebreak_area_codes`(동점 재비교 순서, 기본 `["OPERATION","CONTENT"]`)
+- `evaluation_settings` 테이블(단일행, id=1) 신설: `negotiation_threshold`(기본 85), `tiebreak_area_codes`(동점 재비교 순서, 2026-07-07부터 `["PRICE"]` — 가격평가 점수 높은 업체 우선)
 - **파생값은 저장하지 않고 항상 실시간 계산**: 영역별 배점 합계, 기술평가 합계(`score` 타입 총합), 가격평가 합계(`price` 타입 총합), 전체 합계 — `criteria` 테이블을 항상 다시 읽어 합산하므로 관리자가 항목을 추가/삭제해도 항상 정합성 유지
 - `/data/criteria.json`은 최초 시딩 스냅샷으로만 남고 런타임에는 더 이상 참조하지 않음 — `lib/scoring.ts`는 Supabase에서 동적으로 읽어오도록 리팩터링 필요(Step 3.5 dev-agent 작업)
 - API: `/api/criteria` (GET 전체 조회, POST 항목 추가, PATCH 항목수정/영역명 변경, DELETE 항목·영역 삭제), `/api/settings` (GET/PATCH)

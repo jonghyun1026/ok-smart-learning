@@ -6,15 +6,15 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 
 export const dynamic = "force-dynamic";
 
-const RFP_FILE_HREF = "/OK금융그룹_2025-2026년_스마트러닝_위탁운영_제안요청서.docx";
-const CRITERIA_GUIDE_FILE_HREF = "/세부평가기준_안내.docx";
+const RFP_FILE_HREF = "/OK금융그룹_2026-2027년_스마트러닝_위탁운영_제안요청서.docx";
+const CRITERIA_GUIDE_FILE_HREF = "/OK학당_스마트러닝_위탁운영_세부평가기준_안내(2026~2027년).docx";
 
 const BIZ_INFO = [
   {
     label: "사업명",
-    value: "2025~2026년 OK학당 스마트러닝 교육 위탁운영 용역",
+    value: "2026~2027년 OK학당 스마트러닝 교육 위탁운영 용역",
   },
-  { label: "계약기간", value: "2025.9.1 ~ 2026.8.31 (신규 계약 절차 진행)" },
+  { label: "계약기간", value: "2026.9.1 ~ 2027.8.31" },
   {
     label: "교육대상인원",
     value: "연간 약 1,800명 (예상수강인원, 계약 후 추가인원 협의)",
@@ -77,7 +77,7 @@ export default async function OverviewPage() {
       <section className="rounded-2xl bg-gradient-to-br from-[#2A232A] to-brand-dark2 p-9 shadow-sm">
         <p className="text-[13px] font-bold text-brand-light">OK금융그룹 인재개발팀</p>
         <h1 className="mt-2 text-[26px] font-black leading-snug text-white">
-          2025~2026년 OK학당 스마트러닝 교육 위탁운영 용역
+          2026~2027년 OK학당 스마트러닝 교육 위탁운영 용역
         </h1>
         <p className="mt-2 text-[14px] text-[#D8CFD3]">
           현 계약기간 2025.9.1 ~ 2026.8.31 · 계약 종료 전 신규 계약(공개경쟁입찰) 절차 진행 중

@@ -12,7 +12,7 @@ const notoSansKr = Noto_Sans_KR({
 export const metadata: Metadata = {
   title: "OK학당 스마트러닝 위탁운영 계약 평가시스템",
   description:
-    "OK금융그룹 2025~2026년 OK학당 스마트러닝 교육 위탁운영 용역 입찰·평가 시스템",
+    "OK금융그룹 2026~2027년 OK학당 스마트러닝 교육 위탁운영 용역 입찰·평가 시스템",
 };
 
 export default function RootLayout({

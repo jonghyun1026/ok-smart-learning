@@ -1,11 +1,11 @@
 {
-  "version": "2026-07-06",
-  "source": "OK금융그룹 2025-2026년 스마트러닝 위탁운영 제안요청서 (blueprint-ok-hakdang-rfp-system.md 기반 신규 도출, 실사용 전 담당자 검수 필요)",
+  "version": "2026-07-07",
+  "source": "OK금융그룹 2026-2027년 스마트러닝 위탁운영 제안요청서 (blueprint-ok-hakdang-rfp-system.md 기반 신규 도출, 실사용 전 담당자 검수 필요)",
   "totalPoints": 100,
   "technicalTotalPoints": 80,
   "priceTotalPoints": 20,
   "negotiationThreshold": 85,
-  "tiebreakOrder": ["OPERATION", "CONTENT"],
+  "tiebreakOrder": ["PRICE"],
   "priceFormula": {
     "description": "20 × 최저입찰가 ÷ 해당업체입찰가, 소수 둘째자리 반올림, 상한 20점",
     "formula": "round(20 * lowestBidPrice / companyBidPrice, 2)",
@@ -76,21 +76,21 @@
           "no": "4",
           "name": "보유 콘텐츠 양·다양성(직무/리더십/어학 등)",
           "type": "score",
-          "points": 8,
+          "points": 5,
           "docs": "제안서 콘텐츠 목록"
         },
         {
           "no": "5",
           "name": "콘텐츠 최신성 및 업데이트 주기(법정필수교육 포함)",
           "type": "score",
-          "points": 6,
+          "points": 5,
           "docs": "제안서"
         },
         {
           "no": "6",
           "name": "생성형 AI·데이터 리터러시 등 신기술 콘텐츠 보유/개발계획",
           "type": "score",
-          "points": 6,
+          "points": 10,
           "docs": "제안서"
         },
         {
