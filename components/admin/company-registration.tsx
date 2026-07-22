@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { ChevronDown, ChevronRight, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronRight, Download, Sparkles } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabase";
 import type { AiEvaluationDraft, Company, DocumentUpload } from "@/lib/supabase";
 import {
@@ -105,6 +105,32 @@ function countExtraDocs(documents: Record<string, unknown> | null): number {
   return EXTRA_DOCUMENT_TYPES.filter((d) => isDocSubmitted(documents[d.label])).length;
 }
 
+type CompanyFile = { label: string; fileName: string; fileUrl: string };
+
+/** 업체가 업로드한 모든 제출자료(제안서 + 6종 서류의 모든 파일)를 라벨과 함께 평탄화한다. */
+function collectCompanyFiles(c: Company): CompanyFile[] {
+  const out: CompanyFile[] = [];
+  if (c.proposal_file_url) {
+    out.push({
+      label: "제안서 1부",
+      fileName: c.proposal_file_name || "제안서",
+      fileUrl: c.proposal_file_url,
+    });
+  }
+  const docs = c.documents as Record<string, unknown> | null;
+  for (const doc of EXTRA_DOCUMENT_TYPES) {
+    for (const f of asFileList(docs?.[doc.label])) {
+      if (f.fileUrl) out.push({ label: doc.label, fileName: f.fileName || "파일", fileUrl: f.fileUrl });
+    }
+  }
+  return out;
+}
+
+/** ZIP 내부 경로/파일명에 쓸 수 없는 문자를 안전하게 치환한다(한글은 그대로 허용). */
+function sanitizePathSegment(s: string): string {
+  return s.replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, " ").trim() || "파일";
+}
+
 function qualBadge(choice: QualChoice) {
   if (choice === "pass") return <Badge tone="green">Pass</Badge>;
   if (choice === "fail") return <Badge tone="red">Fail</Badge>;
@@ -135,6 +161,10 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
   // 참가업체 삭제(관리자 유지보수용) 상태.
   const [deletingCompanyId, setDeletingCompanyId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // 제출자료 일괄 다운로드(ZIP) 상태.
+  const [downloadingCompanyId, setDownloadingCompanyId] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
 
   const loadCompanies = useCallback(async () => {
     const res = await fetch("/api/companies");
@@ -331,6 +361,74 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
     }
   }
 
+  /**
+   * 업체가 제출한 모든 자료(제안서 + 6종 서류의 모든 파일)를 브라우저에서 받아 하나의 ZIP으로
+   * 묶어 내려받는다. 파일 바이트가 Vercel 함수를 거치지 않게(용량 제한 회피) Supabase Storage
+   * public URL에서 직접 fetch하고, ZIP 생성/압축도 클라이언트(JSZip)에서 처리한다.
+   * 서류 라벨을 ZIP 내 폴더로 만들어 어떤 서류인지 알아볼 수 있게 한다.
+   */
+  async function handleDownloadAll(company: Company) {
+    setDownloadError(null);
+    const files = collectCompanyFiles(company);
+    if (files.length === 0) {
+      setDownloadError(`"${company.name}" 업체에는 다운로드할 제출자료가 없습니다.`);
+      return;
+    }
+    setDownloadingCompanyId(company.id);
+    try {
+      const { default: JSZip } = await import("jszip");
+      const zip = new JSZip();
+      const usedPaths = new Set<string>();
+      const failed: string[] = [];
+
+      for (const f of files) {
+        try {
+          const res = await fetch(f.fileUrl);
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const blob = await res.blob();
+          let path = `${sanitizePathSegment(f.label)}/${sanitizePathSegment(f.fileName)}`;
+          // 같은 서류 슬롯에 동일 파일명이 있으면 덮어써지지 않게 "(2)" 등을 붙인다.
+          if (usedPaths.has(path)) {
+            const dot = path.lastIndexOf(".");
+            const base = dot > 0 ? path.slice(0, dot) : path;
+            const ext = dot > 0 ? path.slice(dot) : "";
+            let n = 2;
+            while (usedPaths.has(`${base} (${n})${ext}`)) n++;
+            path = `${base} (${n})${ext}`;
+          }
+          usedPaths.add(path);
+          zip.file(path, blob);
+        } catch {
+          failed.push(f.fileName);
+        }
+      }
+
+      if (usedPaths.size === 0) {
+        throw new Error("모든 파일을 불러오지 못했습니다. 잠시 후 다시 시도해주세요.");
+      }
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${sanitizePathSegment(company.name)}_제출자료.zip`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      if (failed.length > 0) {
+        setDownloadError(
+          `일부 파일(${failed.length}건)을 불러오지 못해 ZIP에서 제외했습니다: ${failed.join(", ")}`
+        );
+      }
+    } catch (err) {
+      setDownloadError(err instanceof Error ? err.message : "자료 다운로드 중 오류가 발생했습니다.");
+    } finally {
+      setDownloadingCompanyId(null);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <section className="flex w-full flex-col gap-5 rounded-xl border border-brand-border bg-white p-7">
@@ -457,7 +555,7 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
         등록된 참가업체 목록 ({companies.length}개사)
       </div>
       <section className="w-full overflow-x-auto rounded-xl border border-brand-border bg-white">
-        <div className="min-w-[1420px]">
+        <div className="min-w-[1520px]">
           <div className="flex bg-brand-dark p-3 px-4">
             <div className="w-[28px] shrink-0" />
             <div className="w-[200px] shrink-0 text-[13px] font-bold text-white">업체명</div>
@@ -535,7 +633,20 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
                   <div className="w-[110px] shrink-0 text-[13px] text-brand-muted">
                     {new Date(c.created_at).toLocaleDateString("ko-KR")}
                   </div>
-                  <div className="flex-1">
+                  <div className="flex flex-1 items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDownloadAll(c);
+                      }}
+                      disabled={downloadingCompanyId === c.id}
+                      className="inline-flex items-center gap-1 rounded-md border border-brand-border bg-brand-bg px-2.5 py-1 text-[12px] font-bold text-brand-dark transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+                      title="이 업체의 제안서·제출서류 전체를 ZIP으로 내려받습니다."
+                    >
+                      <Download size={12} />
+                      {downloadingCompanyId === c.id ? "압축 중..." : "자료 다운로드"}
+                    </button>
                     <button
                       type="button"
                       onClick={(e) => {
@@ -612,6 +723,7 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
         </div>
       </section>
       {deleteError && <p className="text-sm font-semibold text-red-600">{deleteError}</p>}
+      {downloadError && <p className="text-sm font-semibold text-red-600">{downloadError}</p>}
     </div>
   );
 }

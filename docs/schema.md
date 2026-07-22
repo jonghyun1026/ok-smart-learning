@@ -143,10 +143,19 @@ group by c.id, c.name, c.bid_price, c.qualification_pass;
 종합결과 대시보드의 업체 비교가 점수 막대·레이더에 그쳐, RFP 실무자가 실제로 궁금한 "무엇을 제안했는가"(콘텐츠 규모·무상제공·부가서비스·운영 장단점)를 나란히 볼 수 없다는 요구에 따라 **사실 기반 "비교 진단" 뷰**를 신설했다.
 
 - `ai_evaluation_drafts.comparison_facts` (jsonb, **nullable**) 컬럼 추가. 점수(`item_scores`)와 별개로, evaluation-agent가 제안서에서 추출한 구조화된 사실을 담는다. 셰이프의 단일 진실 소스는 `lib/comparison.ts`의 `ComparisonFacts` 타입(콘텐츠 규모 metrics/fields, 비용·무상제공, 부가서비스 매트릭스, 운영영역별 pros/cons, 종합 진단 strengths/weaknesses/flags/summary). 작성 규칙은 `.claude/agents/evaluation-agent/AGENT.md`의 "비교 사실 작성" 절.
-- 렌더: `components/admin/comparison-diagnosis.tsx`(`ComparisonDiagnosis`). 종합결과 대시보드(`AiDecisionDashboard`)의 세그먼트 내비 **맨 앞 "비교 진단" 탭(기본 선택)**으로 임베드. 기존 개요/비용/콘텐츠/운영·관리/시스템/기업역량/항목상세 세그먼트는 그대로 뒤에 유지.
+- 렌더: `components/admin/comparison-diagnosis.tsx`(`ComparisonDiagnosis`). **2026-07-22 개편(2.9절)으로 세그먼트형 `AiDecisionDashboard`는 폐기**되고, 이 컴포넌트는 새 단일 스크롤 레포트(`AiEvaluationReport`)의 "03 사실 비교·진단" 섹션에 `showBanner={false}`로 임베드된다. `showBanner` prop으로 상위 레포트가 이미 안내 배너를 보여줄 때 내부 배너를 숨긴다.
 - 여러 업체의 사실을 key/name 기준으로 통합(union)해 매트릭스·정규화 막대로 그리므로, 업체 간 같은 지표는 같은 표준 key/name을 써야 한다(콘텐츠 metric key `courses`/`contents`/`hours`, 운영 key `enrollment`/`video`/`security`, 부가서비스 표준 name 5종). 콘텐츠 '건수'는 마이크로러닝 포함 여부로 왜곡되므로 **총 학습시간(hours)을 정규화 기준으로 강조** 표시한다.
 - `comparison_facts`도 여전히 **AI 초안**이다 — 뷰 상단에 "원본 제안서로 교차 검증 필요" 배너를 고정 표시하고, 확정 점수(`evaluations`)와 무관함을 명시한다.
 - 컬럼 추가 이전 초안이나 아직 재평가하지 않은 초안은 `comparison_facts=null`일 수 있으므로 렌더는 항상 null-safe하게 처리하고, 사실이 하나도 없으면 재평가 안내로 대체한다. 최초 시딩으로 (주)유밥·(주)휴넷 2개사는 기존 채점 근거(rationale)에서 추출해 채워둠(2026-07-22).
+
+## 2.9 "AI 평가 레포트" 단일 탭 개편 + 제출자료 일괄 다운로드 (2026-07-22 추가)
+
+AI 관련 화면이 "종합결과" 안의 세그먼트형 대시보드(업체 간 비교)와 별도 "AI 평가근거" 탭(업체별 근거 상세) 두 곳에 분산돼 있어, 이를 **하나의 단일 스크롤 "AI 평가 레포트"로 통합**했다(사용자 요청: "세그먼트 말고 레포트 하나로, 최대한 훌륭한 시각화").
+
+- **탭 구조 변경**(`app/admin/page.tsx`): 기존 `ai-rationale`("AI 평가근거") 탭을 `ai-report`("AI 평가 레포트")로 교체. "종합결과"(`ResultsDashboard`)에서는 세그먼트형 AI 대시보드를 제거하고 **확정 평가 결과(`evaluations` 평균) 중심**으로 정리.
+- **신규 컴포넌트** `components/admin/ai-evaluation-report.tsx`(`AiEvaluationReport`): 세그먼트(탭 전환) 없이 **01 핵심 요약(추정 순위 히어로 + 지표 한눈에 표) → 02 균형 비교(레이더) → 03 사실 비교·진단(`ComparisonDiagnosis` 임베드) → 04 영역별 점수(가격·카테고리 막대) → 05 항목별 근거(아코디언)**를 하나의 스크롤 내러티브로 렌더. 상단 다크 헤더 배너 + 스티키 번호 목차(IntersectionObserver scroll-spy)로 긴 레포트 내 위치를 표시. 점수 계산·색상·레이더 로직은 폐기된 `AiDecisionDashboard`에서 이전. 색상은 여전히 company_id 오름차순 고정 배정.
+- **폐기 파일**: `components/admin/ai-decision-dashboard.tsx`, `components/admin/ai-rationale.tsx` 삭제(레포트로 흡수).
+- **제출자료 일괄 다운로드(ZIP)**: 참가업체 목록(`company-registration.tsx`)의 "삭제" 옆에 "자료 다운로드" 버튼 추가. 브라우저에서 Supabase Storage public URL을 직접 fetch해 **JSZip으로 클라이언트에서 압축**(제안서 + 6종 서류의 모든 파일). 파일 바이트가 Vercel 함수를 거치지 않아 용량 제한(스캔본 최대 50MB) 회피. ZIP은 서류 라벨을 폴더로, 원본 파일명(UTF-8)을 유지하며 `{업체명}_제출자료.zip`으로 저장. 일부 파일 fetch 실패 시 해당 파일만 제외하고 나머지로 ZIP 생성 후 안내. `jszip` 의존성 추가(동적 import로 클릭 시에만 로드).
 
 ## 3. 마이그레이션/시딩 현황
 

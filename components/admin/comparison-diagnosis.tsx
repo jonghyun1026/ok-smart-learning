@@ -102,7 +102,14 @@ const OPERATION_ICONS: Record<string, typeof Video> = {
  * (5) 종합 장단점 진단. comparison_facts(jsonb)를 소스로 하며, 없는 업체는 안내로 대체한다.
  * 모든 값은 AI 초안이므로 사람 검증 대상(CLAUDE.md)이라는 점을 상단에 명시한다.
  */
-export function ComparisonDiagnosis({ companies }: { companies: DiagnosisCompany[] }) {
+export function ComparisonDiagnosis({
+  companies,
+  showBanner = true,
+}: {
+  companies: DiagnosisCompany[];
+  /** 레포트처럼 상위에서 이미 안내 배너를 보여주는 경우 false로 내부 배너를 숨긴다. */
+  showBanner?: boolean;
+}) {
   const withFacts = useMemo(() => companies.filter((c) => c.facts), [companies]);
   const metrics = useMemo(() => unionMetrics(companies), [companies]);
 
@@ -152,14 +159,16 @@ export function ComparisonDiagnosis({ companies }: { companies: DiagnosisCompany
   return (
     <div className="flex flex-col gap-5">
       {/* 안내 배너 */}
-      <div className="flex items-start gap-2 rounded-xl border border-brand-amber/40 bg-[#FFF8EC] p-3.5">
-        <AlertTriangle size={16} className="mt-0.5 shrink-0 text-brand-amber" />
-        <p className="text-[12px] leading-relaxed text-brand-dark">
-          아래는 <b>AI가 제안서에서 추출한 사실 요약</b>입니다. 점수가 아니라 &quot;무엇을 제안했는가&quot;를
-          업체별로 나란히 비교하는 자료입니다. <b>(담당자 확인)</b>으로 표시된 항목은 제안서 밖에서
-          담당자가 확인·보완한 내용이며, 그 외 항목은 확정 판단 전 원본 제안서로 교차 검증해야 합니다.
-        </p>
-      </div>
+      {showBanner && (
+        <div className="flex items-start gap-2 rounded-xl border border-brand-amber/40 bg-[#FFF8EC] p-3.5">
+          <AlertTriangle size={16} className="mt-0.5 shrink-0 text-brand-amber" />
+          <p className="text-[12px] leading-relaxed text-brand-dark">
+            아래는 <b>AI가 제안서에서 추출한 사실 요약</b>입니다. 점수가 아니라 &quot;무엇을 제안했는가&quot;를
+            업체별로 나란히 비교하는 자료입니다. <b>(담당자 확인)</b>으로 표시된 항목은 제안서 밖에서
+            담당자가 확인·보완한 내용이며, 그 외 항목은 확정 판단 전 원본 제안서로 교차 검증해야 합니다.
+          </p>
+        </div>
+      )}
 
       {/* 1. 콘텐츠 규모 */}
       <div className={cn(CARD, "flex flex-col gap-5")}>

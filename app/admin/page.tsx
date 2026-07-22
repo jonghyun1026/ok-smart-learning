@@ -6,14 +6,14 @@ import { cn } from "@/lib/utils";
 import { CompanyRegistration } from "@/components/admin/company-registration";
 import { ResultsDashboard } from "@/components/admin/results-dashboard";
 import { CriteriaManager } from "@/components/admin/criteria-manager";
-import { AiRationale } from "@/components/admin/ai-rationale";
+import { AiEvaluationReport } from "@/components/admin/ai-evaluation-report";
 
-type AdminTab = "companies" | "results" | "ai-rationale" | "criteria";
+type AdminTab = "companies" | "results" | "ai-report" | "criteria";
 
 const TABS: { id: AdminTab; label: string; icon: typeof Building2 }[] = [
   { id: "companies", label: "참가업체 등록", icon: Building2 },
   { id: "results", label: "종합결과", icon: LayoutList },
-  { id: "ai-rationale", label: "AI 평가근거", icon: Sparkles },
+  { id: "ai-report", label: "AI 평가 레포트", icon: Sparkles },
   { id: "criteria", label: "평가기준 관리", icon: SlidersHorizontal },
 ];
 
@@ -57,7 +57,7 @@ export default function AdminPage() {
         <CompanyRegistration onChanged={() => setResultsRefreshKey((k) => k + 1)} />
       )}
       {tab === "results" && <ResultsDashboard refreshKey={resultsRefreshKey} />}
-      {tab === "ai-rationale" && <AiRationale />}
+      {tab === "ai-report" && <AiEvaluationReport />}
       {tab === "criteria" && (
         <CriteriaManager onChanged={() => setResultsRefreshKey((k) => k + 1)} />
       )}

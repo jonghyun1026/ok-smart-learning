@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { DonutGauge } from "@/components/ui/donut-gauge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { CompanyRadarChart } from "@/components/admin/company-radar-chart";
-import { AiDecisionDashboard } from "@/components/admin/ai-decision-dashboard";
 
 type ResultRow = {
   company_id: string;
@@ -236,15 +235,14 @@ export function ResultsDashboard({ refreshKey }: { refreshKey?: number }) {
         </div>
       </section>
 
-      {/* AI 채점 초안 기반 의사결정 대시보드 — 확정 평가가 쌓이기 전에도 업체를 나란히 비교할 수 있게 한다 */}
-      <AiDecisionDashboard />
-
+      {/* 업체 간 AI 초안 비교·진단은 상단 [AI 평가 레포트] 탭으로 이동함 — 여기서는 확정 평가 중심으로 본다 */}
       <div className="flex items-center gap-3 pt-2">
         <span className="whitespace-nowrap text-base font-bold text-brand-dark">확정 평가 결과</span>
         <div className="h-px flex-1 bg-brand-border" />
       </div>
       <p className="-mt-3 text-xs text-brand-muted">
-        아래는 평가자가 [평가입력] 화면에서 저장한 확정 점수의 평균입니다. AI 초안과는 별개입니다.
+        아래는 평가자가 [평가입력] 화면에서 저장한 확정 점수의 평균입니다. 업체 간 AI 초안 비교·진단은 상단{" "}
+        <b className="font-bold text-brand-dark">[AI 평가 레포트]</b> 탭에서 확인하세요.
       </p>
 
       {/* 작업 3: 업체 간 비교 레이더 차트 (확정 평가 평균 기준) */}
