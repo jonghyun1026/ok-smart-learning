@@ -47,13 +47,14 @@ export type Company = {
   name: string;
   bid_price: number;
   /**
-   * 제출서류 체크리스트. 값은 세 가지 중 하나일 수 있다:
-   * - `{ fileUrl, fileName, uploadedAt }`: 실제 파일이 업로드된 신규 방식
+   * 제출서류 체크리스트. 값은 네 가지 중 하나일 수 있다:
+   * - `DocumentUpload[]`: 실제 파일이 1개 이상 업로드된 신규 방식(2026-07-22부터, 다중 업로드 허용)
+   * - `{ fileUrl, fileName, uploadedAt }`: 다중 업로드 이전에 단일 파일로 저장된 값(하위호환용)
    * - `true`: 과거 시딩된 legacy 값(파일 없이 체크만 됨, 하위호환용)
    * - `undefined`: 아직 제출되지 않음
    * `__qualification` 예약 키만 별도 shape(`{ q1, q2 }`)을 갖는다.
    */
-  documents: Record<string, boolean | DocumentUpload | { q1: string; q2: string } | undefined> | null;
+  documents: Record<string, boolean | DocumentUpload | DocumentUpload[] | { q1: string; q2: string } | undefined> | null;
   proposal_file_url: string | null;
   proposal_file_name: string | null;
   qualification_pass: boolean | null;

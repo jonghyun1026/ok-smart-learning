@@ -120,6 +120,14 @@ group by c.id, c.name, c.bid_price, c.qualification_pass;
 - 관리자 "참가업체 등록" 화면에 7개 파일 업로드 슬롯 (업로드 완료 시 파일명 표시 + 다운로드 링크)
 - `evaluation-agent`는 "제출서류 완비 확인" 단계에서 각 문서 슬롯에 실제 `fileUrl`이 있는지 확인하고, 재무제표 슬롯(4번)은 `financial-statement-analysis` 스킬로 분석해 항목 1(경영현황 및 재무안정성) 채점의 1차 근거로 사용
 
+### 2.7.1 허용 파일 형식 확장 + 다중 업로드 (2026-07-22 추가)
+
+- **허용 확장자**: 제안서(1번)는 `.pdf`/`.docx`/`.jpg`/`.jpeg`/`.png`, 나머지 6종은 `.pdf`/`.docx`/`.xlsx`/`.jpg`/`.jpeg`/`.png`. 스캔본(사진/이미지)으로 제출되는 경우가 많은 서류(사업자등록증 등)를 고려해 이미지 확장자를 추가했다.
+- **다중 업로드**: 제안서(1번)를 제외한 6종은 슬롯당 파일을 여러 개 첨부할 수 있다. 제안서는 RFP상 단일 문서로 제출되는 게 일반적이라 기존과 동일하게 1개만 유지한다.
+  - `companies.documents[문서라벨]`의 shape이 단일 객체에서 **배열**(`DocumentUpload[]`)로 변경됨: `[{ fileUrl, fileName, uploadedAt }, ...]`. 다중 업로드 이전에 저장된 단일 객체 값과 legacy `true` 값은 하위호환으로 계속 인식하되(`lib/supabase.ts`의 `Company.documents` 타입 참고), 신규 업로드는 항상 배열에 append.
+  - Storage 경로도 슬롯당 유일해야 하므로 `proposals/{companyId}/{docTypeSlug}-{uuid}.{ext}`로 변경(기존엔 `{docTypeSlug}.{ext}` 고정이라 재업로드 시 이전 파일을 덮어썼음). 제안서(1번)는 여전히 1개만 허용하므로 경로를 고정 유지.
+- `evaluation-agent`는 재무제표 슬롯 등에서 여러 파일이 있을 수 있음을 감안해 배열 전체를 확인하고 종합 판단해야 한다(예: 재무제표+부가가치과세증명원을 각각 별도 파일로 첨부한 경우).
+
 ## 3. 마이그레이션/시딩 현황
 
 - `scripts/migrations/001_init_schema.sql` — 적용 완료 (companies/criteria/evaluations 테이블 + results_view + updated_at 트리거)

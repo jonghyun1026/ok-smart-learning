@@ -55,20 +55,23 @@ function getQualificationDetail(documents: Record<string, unknown> | null): Qual
   };
 }
 
-/** 값이 "제출됨" 상태인지 판단: legacy boolean true 또는 신규 { fileUrl } 객체 모두 인정. */
+/** 값이 "제출됨" 상태인지 판단: legacy boolean true, 단일 객체(구방식), 배열(신규 다중업로드) 모두 인정. */
 function isDocSubmitted(value: unknown): boolean {
   if (value === true) return true;
+  if (Array.isArray(value)) return value.length > 0;
   if (value && typeof value === "object" && "fileUrl" in (value as Record<string, unknown>)) {
     return Boolean((value as DocumentUpload).fileUrl);
   }
   return false;
 }
 
-function asFileInfo(value: unknown): DocumentUpload | null {
+/** documents[라벨] 값을 파일 목록(0개 이상)으로 정규화한다 — 배열/단일 객체 shape을 모두 흡수. */
+function asFileList(value: unknown): DocumentUpload[] {
+  if (Array.isArray(value)) return value as DocumentUpload[];
   if (value && typeof value === "object" && "fileUrl" in (value as Record<string, unknown>)) {
-    return value as DocumentUpload;
+    return [value as DocumentUpload];
   }
-  return null;
+  return [];
 }
 
 /** 8종(제안서 제외) 중 제출된 문서 개수 */
@@ -91,7 +94,8 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
   const [name, setName] = useState("");
   const [bidPrice, setBidPrice] = useState("");
   const [proposalFile, setProposalFile] = useState<File | null>(null);
-  const [docFiles, setDocFiles] = useState<Record<string, File | null>>({});
+  /** 6종 서류는 슬롯당 여러 파일을 허용하므로 File 배열로 관리한다. */
+  const [docFiles, setDocFiles] = useState<Record<string, File[]>>({});
   const [q1, setQ1] = useState<QualChoice>("unreviewed");
   const [q2, setQ2] = useState<QualChoice>("unreviewed");
   const [submitting, setSubmitting] = useState(false);
@@ -188,12 +192,13 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
           }
         }
         for (const doc of EXTRA_DOCUMENT_TYPES) {
-          const file = docFiles[doc.slug];
-          if (!file) continue;
-          try {
-            await uploadDoc(newCompanyId, doc.slug, file, doc.label);
-          } catch (e) {
-            uploadErrors.push(e instanceof Error ? e.message : String(e));
+          const files = docFiles[doc.slug] ?? [];
+          for (const file of files) {
+            try {
+              await uploadDoc(newCompanyId, doc.slug, file, doc.label);
+            } catch (e) {
+              uploadErrors.push(e instanceof Error ? e.message : String(e));
+            }
           }
         }
       }
@@ -302,15 +307,18 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
 
           <div className="flex flex-1 flex-col gap-2.5">
             <div className="text-[13px] font-bold text-brand-dark">
-              제출서류 업로드 (.pdf, .docx{" "}
-              <span className="font-normal text-brand-muted">일부 항목은 .xlsx 가능</span>)
+              제출서류 업로드 (.pdf, .docx, .jpg, .png{" "}
+              <span className="font-normal text-brand-muted">
+                일부 항목은 .xlsx 가능 · 제안서 외 6종은 파일 여러 개 첨부 가능
+              </span>
+              )
             </div>
             <div className="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-2">
               <div className="flex flex-col gap-1">
                 <span className="text-[12px] font-bold text-brand-dark">제안서 1부</span>
                 <input
                   type="file"
-                  accept=".pdf,.docx"
+                  accept=".pdf,.docx,.jpg,.jpeg,.png"
                   onChange={(e) => setProposalFile(e.target.files?.[0] ?? null)}
                   className="w-full rounded-lg border border-brand-border bg-white px-2.5 py-1.5 text-[12px] text-brand-dark file:mr-2 file:rounded-md file:border-0 file:bg-brand-bg file:px-2.5 file:py-1 file:text-[12px] file:font-bold file:text-brand focus:outline-none focus:ring-2 focus:ring-brand/40"
                 />
@@ -323,14 +331,20 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
                   <span className="text-[12px] font-bold text-brand-dark">{doc.label}</span>
                   <input
                     type="file"
-                    accept=".pdf,.docx,.xlsx"
+                    multiple
+                    accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png"
                     onChange={(e) =>
-                      setDocFiles((prev) => ({ ...prev, [doc.slug]: e.target.files?.[0] ?? null }))
+                      setDocFiles((prev) => ({
+                        ...prev,
+                        [doc.slug]: e.target.files ? Array.from(e.target.files) : [],
+                      }))
                     }
                     className="w-full rounded-lg border border-brand-border bg-white px-2.5 py-1.5 text-[12px] text-brand-dark file:mr-2 file:rounded-md file:border-0 file:bg-brand-bg file:px-2.5 file:py-1 file:text-[12px] file:font-bold file:text-brand focus:outline-none focus:ring-2 focus:ring-brand/40"
                   />
-                  {docFiles[doc.slug] && (
-                    <span className="text-[11px] text-brand-muted">선택됨: {docFiles[doc.slug]?.name}</span>
+                  {(docFiles[doc.slug]?.length ?? 0) > 0 && (
+                    <span className="text-[11px] text-brand-muted">
+                      선택됨: {docFiles[doc.slug]!.map((f) => f.name).join(", ")}
+                    </span>
                   )}
                 </div>
               ))}
@@ -481,23 +495,28 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
                           );
                         }
                         const value = docs?.[label];
-                        const fileInfo = asFileInfo(value);
+                        const fileList = asFileList(value);
                         return (
-                          <div key={label} className="flex items-center gap-2 text-[12px]">
+                          <div key={label} className="flex flex-col gap-0.5 text-[12px]">
                             <span className="text-brand-dark">{label}:</span>
-                            {fileInfo ? (
-                              <a
-                                href={fileInfo.fileUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="truncate text-brand"
-                              >
-                                {fileInfo.fileName || "다운로드"}
-                              </a>
+                            {fileList.length > 0 ? (
+                              <div className="flex flex-wrap gap-x-3 gap-y-0.5 pl-2">
+                                {fileList.map((f, idx) => (
+                                  <a
+                                    key={`${f.fileUrl}-${idx}`}
+                                    href={f.fileUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="truncate text-brand"
+                                  >
+                                    {f.fileName || "다운로드"}
+                                  </a>
+                                ))}
+                              </div>
                             ) : value === true ? (
-                              <span className="text-brand-muted">체크만 됨 (파일 없음)</span>
+                              <span className="pl-2 text-brand-muted">체크만 됨 (파일 없음)</span>
                             ) : (
-                              <span className="text-brand-muted">미제출</span>
+                              <span className="pl-2 text-brand-muted">미제출</span>
                             )}
                           </div>
                         );

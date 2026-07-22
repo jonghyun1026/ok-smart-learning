@@ -1,13 +1,14 @@
+import { randomUUID } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseClient } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-/** 제안서(및 기본값)는 기존과 동일하게 pdf/docx만 허용한다. */
-const DEFAULT_ALLOWED_EXTENSIONS = [".pdf", ".docx"];
-/** 그 외 서류는 실무에서 xlsx로 오는 경우가 있어(특히 재무제표) 추가로 허용한다. */
-const EXTRA_ALLOWED_EXTENSIONS = [".pdf", ".docx", ".xlsx"];
+/** 제안서는 기존과 동일하게 pdf/docx만 허용하고, 스캔본 제출을 위해 이미지도 추가 허용한다. */
+const DEFAULT_ALLOWED_EXTENSIONS = [".pdf", ".docx", ".jpg", ".jpeg", ".png"];
+/** 그 외 서류는 실무에서 xlsx로 오는 경우가 있고(특히 재무제표), 스캔본 이미지도 흔해 추가로 허용한다. */
+const EXTRA_ALLOWED_EXTENSIONS = [".pdf", ".docx", ".xlsx", ".jpg", ".jpeg", ".png"];
 
 /**
  * docType 슬러그 → companies.documents jsonb에 저장할 한글 라벨.
@@ -69,9 +70,13 @@ export async function POST(req: NextRequest) {
   const supabase = getSupabaseClient();
 
   // Supabase Storage 객체 키는 비-ASCII 문자(한글 등)를 포함하면 "Invalid key" 오류를 낸다.
-  // 원본 파일명은 DB 컬럼(proposal_file_name 또는 documents[라벨].fileName)에 그대로
+  // 원본 파일명은 DB 컬럼(proposal_file_name 또는 documents[라벨][].fileName)에 그대로
   // 보존하고, 저장 경로는 ASCII(docType 슬러그)로만 구성한다.
-  const storagePath = `${companyId}/${docType}${ext}`;
+  // 제안서 제외 6종은 슬롯당 여러 파일을 허용하므로, 덮어쓰기가 아니라 매 업로드마다
+  // 고유한 경로(uuid)를 부여해 기존 파일이 지워지지 않게 한다.
+  const storagePath = isProposal
+    ? `${companyId}/${docType}${ext}`
+    : `${companyId}/${docType}-${randomUUID()}${ext}`;
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -105,7 +110,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ company });
   }
 
-  // 8종 서류: 기존 documents jsonb의 다른 키를 보존한 채 해당 라벨 키만 부분 업데이트.
+  // 6종 서류: 기존 documents jsonb의 다른 키를 보존한 채 해당 라벨 키만 부분 업데이트.
+  // 슬롯당 여러 파일을 허용하므로 값은 배열이며, 기존 파일 목록에 새 파일을 추가(append)한다.
   const { data: existing, error: fetchError } = await supabase
     .from("companies")
     .select("documents")
@@ -117,11 +123,21 @@ export async function POST(req: NextRequest) {
   }
 
   const documents = { ...(existing?.documents as Record<string, unknown> | null) };
-  documents[docLabel as string] = {
-    fileUrl: publicUrlData.publicUrl,
-    fileName: file.name,
-    uploadedAt: new Date().toISOString(),
-  };
+  const prevValue = documents[docLabel as string];
+  // 과거 단일 객체({fileUrl,...}) 또는 legacy boolean(true)만 있던 슬롯도 배열로 전환한다.
+  const prevList = Array.isArray(prevValue)
+    ? prevValue
+    : prevValue && typeof prevValue === "object" && "fileUrl" in (prevValue as Record<string, unknown>)
+      ? [prevValue]
+      : [];
+  documents[docLabel as string] = [
+    ...prevList,
+    {
+      fileUrl: publicUrlData.publicUrl,
+      fileName: file.name,
+      uploadedAt: new Date().toISOString(),
+    },
+  ];
 
   const { data: company, error: updateError } = await supabase
     .from("companies")
