@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { DonutGauge } from "@/components/ui/donut-gauge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { CompanyRadarChart } from "@/components/admin/company-radar-chart";
+import { AiDecisionDashboard } from "@/components/admin/ai-decision-dashboard";
 
 type ResultRow = {
   company_id: string;
@@ -195,21 +196,21 @@ export function ResultsDashboard({ refreshKey }: { refreshKey?: number }) {
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-4 lg:flex-row">
         <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex flex-col justify-between gap-4 rounded-xl bg-gradient-to-br from-[#F04E23] to-brand-light p-5 text-white">
+          <div className="flex flex-col justify-between gap-4 rounded-2xl bg-gradient-to-br from-[#F04E23] to-brand-light p-5 text-white shadow-sm">
             <Building2 size={20} />
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] font-semibold text-white/85">참가업체 수</span>
               <span className="text-[26px] font-black">{stats.total}개사</span>
             </div>
           </div>
-          <div className="flex flex-col justify-between gap-4 rounded-xl bg-gradient-to-br from-brand-green to-brand-greenLight p-5 text-white">
+          <div className="flex flex-col justify-between gap-4 rounded-2xl bg-gradient-to-br from-brand-green to-brand-greenLight p-5 text-white shadow-sm">
             <ShieldCheck size={20} />
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] font-semibold text-white/85">협상적격 업체 수</span>
               <span className="text-[26px] font-black">{stats.qualified}개사</span>
             </div>
           </div>
-          <div className="flex flex-col justify-between gap-4 rounded-xl bg-gradient-to-br from-brand-amber to-brand-amberLight p-5 text-white">
+          <div className="flex flex-col justify-between gap-4 rounded-2xl bg-gradient-to-br from-brand-amber to-brand-amberLight p-5 text-white shadow-sm">
             <Clock size={20} />
             <div className="flex flex-col gap-0.5">
               <span className="text-[12px] font-semibold text-white/85">필수자격 판정 대기</span>
@@ -218,7 +219,7 @@ export function ResultsDashboard({ refreshKey }: { refreshKey?: number }) {
           </div>
         </div>
 
-        <div className="flex shrink-0 flex-col items-center justify-center gap-3 rounded-xl border border-brand-border bg-white p-5">
+        <div className="flex shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border border-brand-border bg-white p-5 shadow-sm">
           <span className="text-[12px] font-bold text-brand-muted">협상적격 비율</span>
           <DonutGauge
             value={stats.qualified}
@@ -235,7 +236,18 @@ export function ResultsDashboard({ refreshKey }: { refreshKey?: number }) {
         </div>
       </section>
 
-      {/* 작업 3: 업체 간 비교 레이더 차트 */}
+      {/* AI 채점 초안 기반 의사결정 대시보드 — 확정 평가가 쌓이기 전에도 업체를 나란히 비교할 수 있게 한다 */}
+      <AiDecisionDashboard />
+
+      <div className="flex items-center gap-3 pt-2">
+        <span className="whitespace-nowrap text-base font-bold text-brand-dark">확정 평가 결과</span>
+        <div className="h-px flex-1 bg-brand-border" />
+      </div>
+      <p className="-mt-3 text-xs text-brand-muted">
+        아래는 평가자가 [평가입력] 화면에서 저장한 확정 점수의 평균입니다. AI 초안과는 별개입니다.
+      </p>
+
+      {/* 작업 3: 업체 간 비교 레이더 차트 (확정 평가 평균 기준) */}
       <CompanyRadarChart
         criteria={criteria}
         companies={results.map((r) => ({
@@ -244,10 +256,11 @@ export function ResultsDashboard({ refreshKey }: { refreshKey?: number }) {
           avg_total_score: r.avg_total_score,
           areaScores: r.areaScores,
         }))}
+        title="확정 평가 균형 비교 (레이더 차트)"
       />
 
       <div className="text-base font-bold text-brand-dark">업체별 평가 결과 (고득점순)</div>
-      <section className="w-full overflow-x-auto rounded-xl border border-brand-border bg-white">
+      <section className="w-full overflow-x-auto rounded-2xl border border-brand-border bg-white shadow-sm">
         <div className="min-w-[1190px]">
           <div className="flex items-center bg-brand-dark p-3 px-4">
             <div className="w-[40px] shrink-0" />

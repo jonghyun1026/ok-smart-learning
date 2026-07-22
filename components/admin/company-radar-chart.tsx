@@ -107,7 +107,7 @@ export function CompanyRadarChart({
   }
 
   return (
-    <section className="flex flex-col gap-4 rounded-xl border border-brand-border bg-white p-5">
+    <section className="flex flex-col gap-4 rounded-2xl border border-brand-border bg-white p-6 shadow-sm">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-0.5">
           <span className="text-base font-bold text-brand-dark">{title}</span>
