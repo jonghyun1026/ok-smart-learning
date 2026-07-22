@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import type { ComparisonFacts } from "@/lib/comparison";
 
 // NOTE: 이 단계는 인증이 없고 RLS도 의도적으로 비활성 상태다 (CLAUDE.md 참조).
 // service_role key는 발급받지 않았으므로 서버 사이드(Route Handler)에서도
@@ -69,6 +70,12 @@ export type AiEvaluationDraft = {
   model: string;
   item_scores: Record<string, { score: number; rationale: string }>;
   overall_summary: string | null;
+  /**
+   * 제안서에서 추출한 구조화된 비교 사실 (docs/schema.md 2.8절). "비교 진단" 뷰가 렌더한다.
+   * 컬럼 추가(2026-07-22) 이전 초안이나 아직 재평가하지 않은 초안은 null일 수 있으므로
+   * 렌더 측에서 항상 null 체크한다.
+   */
+  comparison_facts: ComparisonFacts | null;
   status: "pending" | "completed" | "failed";
   error_message: string | null;
   created_at: string;

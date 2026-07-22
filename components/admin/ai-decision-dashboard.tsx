@@ -21,6 +21,7 @@ import {
   Gauge,
   LayoutGrid,
   Layers,
+  Scale,
   Sparkles,
   Trophy,
   Wallet,
@@ -40,6 +41,7 @@ import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { RationaleBlocks } from "@/components/ui/rationale-blocks";
 import { CompanyRadarChart, type RadarCompanyRow } from "@/components/admin/company-radar-chart";
+import { ComparisonDiagnosis, type DiagnosisCompany } from "@/components/admin/comparison-diagnosis";
 
 type CompanyLite = { id: string; name: string; bid_price: number; qualification_pass: boolean | null };
 
@@ -88,7 +90,7 @@ export function AiDecisionDashboard() {
   const [drafts, setDrafts] = useState<DraftWithCompany[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
-  const [section, setSection] = useState<string>("overview");
+  const [section, setSection] = useState<string>("diagnosis");
 
   useEffect(() => {
     async function load() {
@@ -302,7 +304,16 @@ export function AiDecisionDashboard() {
     score: priceScore,
   }));
 
+  const diagnosisCompanies: DiagnosisCompany[] = ranked.map(({ draft }) => ({
+    id: draft.company_id,
+    name: draft.companyName,
+    bidPrice: draft.bidPrice,
+    color: companyColor(draft.company_id),
+    facts: draft.comparison_facts,
+  }));
+
   const sections: { key: string; label: string; icon: typeof LayoutGrid }[] = [
+    { key: "diagnosis", label: "비교 진단", icon: Scale },
     { key: "overview", label: "개요", icon: LayoutGrid },
     { key: "cost", label: "비용", icon: Wallet },
     ...categories.map((c) => ({ key: c.key, label: c.label, icon: Layers })),
@@ -393,6 +404,9 @@ export function AiDecisionDashboard() {
           );
         })}
       </div>
+
+      {/* 비교 진단: 제안서에서 추출한 사실 기반 비교 (콘텐츠 규모/비용/부가서비스/운영/종합진단) */}
+      {section === "diagnosis" && <ComparisonDiagnosis companies={diagnosisCompanies} />}
 
       {/* 개요: 히어로 순위 카드 + 레이더 + 강약점 */}
       {section === "overview" && (

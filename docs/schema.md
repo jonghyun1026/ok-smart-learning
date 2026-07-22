@@ -138,6 +138,16 @@ group by c.id, c.name, c.bid_price, c.qualification_pass;
 - 공유 상수(`DOC_TYPE_LABELS`, 허용 확장자, 파일 크기 상한)는 `lib/documentTypes.ts`로 분리해 클라이언트(`components/admin/company-registration.tsx`)와 서버(`/api/proposals/finalize`)가 함께 참조한다.
 - `companies.documents`/`proposal_file_url` 등 DB에 저장되는 shape 자체는 2.7/2.7.1절과 동일하다 — 바뀐 건 전송 경로뿐이다.
 
+## 2.8 비교 진단 — 구조화된 비교 사실 (2026-07-22 추가)
+
+종합결과 대시보드의 업체 비교가 점수 막대·레이더에 그쳐, RFP 실무자가 실제로 궁금한 "무엇을 제안했는가"(콘텐츠 규모·무상제공·부가서비스·운영 장단점)를 나란히 볼 수 없다는 요구에 따라 **사실 기반 "비교 진단" 뷰**를 신설했다.
+
+- `ai_evaluation_drafts.comparison_facts` (jsonb, **nullable**) 컬럼 추가. 점수(`item_scores`)와 별개로, evaluation-agent가 제안서에서 추출한 구조화된 사실을 담는다. 셰이프의 단일 진실 소스는 `lib/comparison.ts`의 `ComparisonFacts` 타입(콘텐츠 규모 metrics/fields, 비용·무상제공, 부가서비스 매트릭스, 운영영역별 pros/cons, 종합 진단 strengths/weaknesses/flags/summary). 작성 규칙은 `.claude/agents/evaluation-agent/AGENT.md`의 "비교 사실 작성" 절.
+- 렌더: `components/admin/comparison-diagnosis.tsx`(`ComparisonDiagnosis`). 종합결과 대시보드(`AiDecisionDashboard`)의 세그먼트 내비 **맨 앞 "비교 진단" 탭(기본 선택)**으로 임베드. 기존 개요/비용/콘텐츠/운영·관리/시스템/기업역량/항목상세 세그먼트는 그대로 뒤에 유지.
+- 여러 업체의 사실을 key/name 기준으로 통합(union)해 매트릭스·정규화 막대로 그리므로, 업체 간 같은 지표는 같은 표준 key/name을 써야 한다(콘텐츠 metric key `courses`/`contents`/`hours`, 운영 key `enrollment`/`video`/`security`, 부가서비스 표준 name 5종). 콘텐츠 '건수'는 마이크로러닝 포함 여부로 왜곡되므로 **총 학습시간(hours)을 정규화 기준으로 강조** 표시한다.
+- `comparison_facts`도 여전히 **AI 초안**이다 — 뷰 상단에 "원본 제안서로 교차 검증 필요" 배너를 고정 표시하고, 확정 점수(`evaluations`)와 무관함을 명시한다.
+- 컬럼 추가 이전 초안이나 아직 재평가하지 않은 초안은 `comparison_facts=null`일 수 있으므로 렌더는 항상 null-safe하게 처리하고, 사실이 하나도 없으면 재평가 안내로 대체한다. 최초 시딩으로 (주)유밥·(주)휴넷 2개사는 기존 채점 근거(rationale)에서 추출해 채워둠(2026-07-22).
+
 ## 3. 마이그레이션/시딩 현황
 
 - `scripts/migrations/001_init_schema.sql` — 적용 완료 (companies/criteria/evaluations 테이블 + results_view + updated_at 트리거)
