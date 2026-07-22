@@ -2,7 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ChevronDown, ChevronRight, Sparkles } from "lucide-react";
+import { getSupabaseClient } from "@/lib/supabase";
 import type { AiEvaluationDraft, Company, DocumentUpload } from "@/lib/supabase";
+import {
+  EXTRA_ALLOWED_EXTENSIONS,
+  MAX_FILE_SIZE_BYTES,
+  MAX_FILE_SIZE_LABEL,
+  PROPOSAL_ALLOWED_EXTENSIONS,
+} from "@/lib/documentTypes";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -11,17 +18,10 @@ import { Badge } from "@/components/ui/badge";
  * 제출서류 6종 (제안서 1부는 별도 필드 proposal_file_url로 관리되므로 이 목록에서 제외).
  * 2026-07-06: 실제 RFP 제출서류 목록(사용자 확인)에 맞춰 원격평생교육시설 신고증빙·정보보안
  * 대책서를 제거하고 총 7종(제안서+6종)으로 확정했다.
- * slug는 /api/proposals/upload의 docType 파라미터 및 Storage 경로에 쓰이는 ASCII 값이고,
+ * slug는 Storage 경로 및 /api/proposals/finalize의 docType 파라미터에 쓰이는 ASCII 값이고,
  * label은 companies.documents jsonb의 키(한글)로, evaluation-agent가 그대로 참조하므로
- * docs/schema.md 2.7절과 정확히 일치해야 한다.
+ * docs/schema.md 2.7절과 정확히 일치해야 한다(DOC_TYPE_LABELS와 동일 매핑).
  */
-/**
- * Vercel Functions는 요청 본문이 약 4.5MB를 넘으면 413(Request Entity Too Large)을 돌려준다
- * (플랫폼 하드 리밋, 서버 코드로 늘릴 수 없음). 파일 선택 시점에 미리 걸러내 업로드를 시도조차
- * 하지 않고 바로 안내하기 위한 여유 있는 클라이언트 측 상한.
- */
-const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
-const MAX_FILE_SIZE_LABEL = "4MB";
 
 function splitBySize(files: File[]): { ok: File[]; oversized: File[] } {
   const ok: File[] = [];
@@ -167,17 +167,51 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
 
   /**
    * 업체 생성 후 파일 하나를 지정된 docType으로 업로드한다. 실패 시 에러 메시지를 던진다.
-   * Vercel Functions는 요청 본문이 약 4.5MB를 넘으면 JSON이 아닌 평문 "Request Entity Too
-   * Large" 응답(413)을 돌려주는데, 과거엔 이를 무조건 res.json()으로 파싱하려다 옆질러
-   * "Unexpected token 'R'... is not valid JSON" 같은 알아보기 힘든 에러로 표시됐다.
-   * 응답 본문을 먼저 텍스트로 읽고 JSON 파싱을 시도해 원인을 정확히 구분한다.
+   * 2026-07-22: 파일 바이트는 Vercel 서버리스 함수를 거치지 않고 브라우저에서 Supabase
+   * Storage로 직접 업로드한다 — 예전엔 /api/proposals/upload로 프록시했는데, Vercel
+   * Functions의 요청 본문 하드 리밋(~4.5MB, 서버 코드로 늘릴 수 없음) 때문에 실제 스캔본
+   * 파일이 자주 막혔었다. 업로드가 끝난 뒤 결과 URL만 가벼운 JSON으로
+   * /api/proposals/finalize에 보내 DB에 기록한다.
    */
   async function uploadDoc(companyId: string, docType: string, file: File, labelForError: string) {
-    const uploadForm = new FormData();
-    uploadForm.append("file", file);
-    uploadForm.append("companyId", companyId);
-    uploadForm.append("docType", docType);
-    const res = await fetch("/api/proposals/upload", { method: "POST", body: uploadForm });
+    const isProposal = docType === "proposal";
+    const allowedExtensions = isProposal ? PROPOSAL_ALLOWED_EXTENSIONS : EXTRA_ALLOWED_EXTENSIONS;
+    const lowerName = file.name.toLowerCase();
+    const ext = allowedExtensions.find((e) => lowerName.endsWith(e));
+    if (!ext) {
+      throw new Error(
+        `${labelForError} 업로드 실패: 지원하지 않는 파일 형식입니다. ${allowedExtensions.join(", ")} 파일만 업로드할 수 있습니다.`
+      );
+    }
+
+    // Supabase Storage 객체 키는 비-ASCII 문자(한글 등)를 포함하면 "Invalid key" 오류를 낸다.
+    // 원본 파일명은 DB 컬럼에만 보존하고 Storage 경로는 ASCII(docType 슬러그)로만 구성한다.
+    // 제안서 제외 6종은 슬롯당 여러 파일을 허용하므로, 덮어쓰기가 아니라 매 업로드마다
+    // 고유한 경로(uuid)를 부여해 기존 파일이 지워지지 않게 한다.
+    const storagePath = isProposal
+      ? `${companyId}/${docType}${ext}`
+      : `${companyId}/${docType}-${crypto.randomUUID()}${ext}`;
+
+    const supabase = getSupabaseClient();
+    const { error: uploadError } = await supabase.storage
+      .from("proposals")
+      .upload(storagePath, file, { contentType: file.type || undefined, upsert: true });
+    if (uploadError) {
+      throw new Error(`${labelForError} 업로드 실패: ${uploadError.message}`);
+    }
+
+    const { data: publicUrlData } = supabase.storage.from("proposals").getPublicUrl(storagePath);
+
+    const res = await fetch("/api/proposals/finalize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        companyId,
+        docType,
+        fileUrl: publicUrlData.publicUrl,
+        fileName: file.name,
+      }),
+    });
     const rawText = await res.text();
     let data: { error?: string } | null = null;
     try {
@@ -186,11 +220,7 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
       data = null;
     }
     if (!res.ok) {
-      const message =
-        data?.error ??
-        (res.status === 413
-          ? `파일 용량이 너무 큽니다(${MAX_FILE_SIZE_LABEL} 초과). 용량을 줄여 다시 시도해주세요.`
-          : rawText.trim().slice(0, 200) || `업로드 서버 오류(HTTP ${res.status})`);
+      const message = data?.error ?? (rawText.trim().slice(0, 200) || `서버 오류(HTTP ${res.status})`);
       throw new Error(`${labelForError} 업로드 실패: ${message}`);
     }
   }
@@ -361,7 +391,7 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
                 <span className="text-[12px] font-bold text-brand-dark">제안서 1부</span>
                 <input
                   type="file"
-                  accept=".pdf,.docx,.jpg,.jpeg,.png"
+                  accept={PROPOSAL_ALLOWED_EXTENSIONS.join(",")}
                   onChange={(e) => {
                     const picked = e.target.files?.[0] ?? null;
                     if (picked && picked.size > MAX_FILE_SIZE_BYTES) {
@@ -384,7 +414,7 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
                   <input
                     type="file"
                     multiple
-                    accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png"
+                    accept={EXTRA_ALLOWED_EXTENSIONS.join(",")}
                     onChange={(e) => {
                       const picked = e.target.files ? Array.from(e.target.files) : [];
                       const { ok, oversized } = splitBySize(picked);

@@ -128,6 +128,16 @@ group by c.id, c.name, c.bid_price, c.qualification_pass;
   - Storage 경로도 슬롯당 유일해야 하므로 `proposals/{companyId}/{docTypeSlug}-{uuid}.{ext}`로 변경(기존엔 `{docTypeSlug}.{ext}` 고정이라 재업로드 시 이전 파일을 덮어썼음). 제안서(1번)는 여전히 1개만 허용하므로 경로를 고정 유지.
 - `evaluation-agent`는 재무제표 슬롯 등에서 여러 파일이 있을 수 있음을 감안해 배열 전체를 확인하고 종합 판단해야 한다(예: 재무제표+부가가치과세증명원을 각각 별도 파일로 첨부한 경우).
 
+### 2.7.2 업로드를 브라우저→Storage 직접 방식으로 전환 (2026-07-22 추가)
+
+2.7.1절의 4MB 클라이언트 상한은 임시방편이었다 — 실제 원인은 Vercel Functions의 요청 본문 하드 리밋(약 4.5MB, 서버 코드로 늘릴 수 없는 플랫폼 제약)이었고, 스캔본 파일은 이보다 쉽게 커진다. 이를 근본적으로 없애기 위해 파일 바이트가 더 이상 Vercel 서버리스 함수를 거치지 않도록 업로드 경로를 바꿨다.
+
+- **이전**: 브라우저 → `POST /api/proposals/upload`(multipart, 파일 바이트 포함) → 서버가 Supabase Storage에 업로드 → DB 기록. 파일 바이트가 Vercel 함수 요청 본문에 실려 4.5MB 벽에 걸림.
+- **이후**: 브라우저가 `@supabase/supabase-js`(anon key, 이미 클라이언트에 노출된 구조 — 1장 RLS 비활성 참고)로 Supabase Storage에 **직접** 업로드 → 완료된 `{ fileUrl, fileName }`만 가벼운 JSON으로 `POST /api/proposals/finalize`에 보내 DB(`proposal_file_url`/`proposal_file_name` 또는 `documents[라벨]` 배열 append)에 기록. `/api/proposals/upload`는 삭제됨.
+- 클라이언트 측 파일당 상한을 4MB → **50MB**로 상향(Storage `proposals` 버킷은 파일 크기 제한이 걸려있지 않음 — 프로젝트 전역 기본값을 따름, Supabase 무료/Pro 플랜 통상 기본값 수준). 과도하게 큰 첨부를 막기 위한 여유 있는 UX 가드일 뿐, 플랫폼 제약이 아니므로 필요시 대시보드(Project Settings → Storage)에서 전역 한도를 확인한 뒤 더 올릴 수 있다.
+- 공유 상수(`DOC_TYPE_LABELS`, 허용 확장자, 파일 크기 상한)는 `lib/documentTypes.ts`로 분리해 클라이언트(`components/admin/company-registration.tsx`)와 서버(`/api/proposals/finalize`)가 함께 참조한다.
+- `companies.documents`/`proposal_file_url` 등 DB에 저장되는 shape 자체는 2.7/2.7.1절과 동일하다 — 바뀐 건 전송 경로뿐이다.
+
 ## 3. 마이그레이션/시딩 현황
 
 - `scripts/migrations/001_init_schema.sql` — 적용 완료 (companies/criteria/evaluations 테이블 + results_view + updated_at 트리거)
