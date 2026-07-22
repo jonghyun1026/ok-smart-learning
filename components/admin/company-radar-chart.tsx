@@ -36,10 +36,22 @@ const CUSTOM_TOGGLE_THRESHOLD = 6;
 export function CompanyRadarChart({
   criteria,
   companies,
+  title = "업체 간 비교 (레이더 차트)",
+  description = "영역별 평가자 평균 점수를 영역 만점 대비 백분율로 정규화해 겹쳐 표시합니다.",
+  colorFor,
 }: {
   criteria: CriteriaData;
-  /** 총점 내림차순으로 이미 정렬된 업체 목록 (results-dashboard의 rankCompanies 결과) */
+  /** 총점 내림차순으로 이미 정렬된 업체 목록 (results-dashboard의 rankCompanies 결과, 또는 AI 초안 기준 산출값) */
   companies: RadarCompanyRow[];
+  /** 호출부마다 데이터 출처가 다를 수 있어(확정 평가 평균 vs AI 초안) 제목/설명을 오버라이드할 수 있게 한다. */
+  title?: string;
+  description?: string;
+  /**
+   * 색상을 company_id 기준으로 직접 지정하고 싶을 때 사용한다(같은 화면의 다른 차트와 색을
+   * 맞춰야 하는 경우). 생략하면 기존처럼 companies 배열의 index로 자동 배정한다 — 이 배열은
+   * 총점순 정렬을 유지해야 "업체 6개 초과 시 상위 5개 기본 표시" 로직이 올바르게 동작한다.
+   */
+  colorFor?: (companyId: string) => string;
 }) {
   const scoreAreas = useMemo(() => criteria.areas.filter((a) => a.type === "score"), [criteria]);
 
@@ -98,9 +110,9 @@ export function CompanyRadarChart({
     <section className="flex flex-col gap-4 rounded-xl border border-brand-border bg-white p-5">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-0.5">
-          <span className="text-base font-bold text-brand-dark">업체 간 비교 (레이더 차트)</span>
+          <span className="text-base font-bold text-brand-dark">{title}</span>
           <span className="text-[12px] text-brand-muted">
-            영역별 평가자 평균 점수를 영역 만점 대비 백분율로 정규화해 겹쳐 표시합니다.
+            {description}
             {companies.length > CUSTOM_TOGGLE_THRESHOLD &&
               !customMode &&
               ` 업체가 ${companies.length}개라 총점 상위 ${AUTO_DISPLAY_LIMIT}개사만 기본 표시됩니다.`}
@@ -129,7 +141,7 @@ export function CompanyRadarChart({
         <div className="flex flex-wrap gap-2">
           {companies.map((c) => {
             const idx = companies.findIndex((x) => x.company_id === c.company_id);
-            const color = getCompanyColor(idx);
+            const color = colorFor ? colorFor(c.company_id) : getCompanyColor(idx);
             const checked = activeIds.has(c.company_id);
             return (
               <button
@@ -170,7 +182,7 @@ export function CompanyRadarChart({
               />
               {activeCompanies.map((c) => {
                 const idx = companies.findIndex((x) => x.company_id === c.company_id);
-                const color = getCompanyColor(idx);
+                const color = colorFor ? colorFor(c.company_id) : getCompanyColor(idx);
                 return (
                   <Radar
                     key={c.company_id}
