@@ -156,7 +156,8 @@ export function ComparisonDiagnosis({ companies }: { companies: DiagnosisCompany
         <AlertTriangle size={16} className="mt-0.5 shrink-0 text-brand-amber" />
         <p className="text-[12px] leading-relaxed text-brand-dark">
           아래는 <b>AI가 제안서에서 추출한 사실 요약</b>입니다. 점수가 아니라 &quot;무엇을 제안했는가&quot;를
-          업체별로 나란히 비교하는 자료이며, 확정 판단 전 담당자가 원본 제안서로 교차 검증해야 합니다.
+          업체별로 나란히 비교하는 자료입니다. <b>(담당자 확인)</b>으로 표시된 항목은 제안서 밖에서
+          담당자가 확인·보완한 내용이며, 그 외 항목은 확정 판단 전 원본 제안서로 교차 검증해야 합니다.
         </p>
       </div>
 
