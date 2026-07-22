@@ -255,7 +255,7 @@ export function calcTotals(
   const areaSubtotals: Record<string, number> = {};
   for (const area of data.areas) {
     if (area.type === "score") {
-      areaSubtotals[area.code] = calcAreaSubtotal(data, scoresWithPrice, area.code);
+      areaSubtotals[area.code] = Math.round(calcAreaSubtotal(data, scoresWithPrice, area.code) * 100) / 100;
     }
   }
 

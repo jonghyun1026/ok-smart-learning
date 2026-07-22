@@ -1,19 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, LayoutList, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Building2, GitCompare, LayoutList, SlidersHorizontal, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CompanyRegistration } from "@/components/admin/company-registration";
 import { ResultsDashboard } from "@/components/admin/results-dashboard";
 import { CriteriaManager } from "@/components/admin/criteria-manager";
 import { AiRationale } from "@/components/admin/ai-rationale";
+import { AiComparison } from "@/components/admin/ai-comparison";
 
-type AdminTab = "companies" | "results" | "ai-rationale" | "criteria";
+type AdminTab = "companies" | "results" | "ai-rationale" | "ai-comparison" | "criteria";
 
 const TABS: { id: AdminTab; label: string; icon: typeof Building2 }[] = [
   { id: "companies", label: "참가업체 등록", icon: Building2 },
   { id: "results", label: "종합결과", icon: LayoutList },
   { id: "ai-rationale", label: "AI 평가근거", icon: Sparkles },
+  { id: "ai-comparison", label: "AI 평가 비교", icon: GitCompare },
   { id: "criteria", label: "평가기준 관리", icon: SlidersHorizontal },
 ];
 
@@ -58,6 +60,7 @@ export default function AdminPage() {
       )}
       {tab === "results" && <ResultsDashboard refreshKey={resultsRefreshKey} />}
       {tab === "ai-rationale" && <AiRationale />}
+      {tab === "ai-comparison" && <AiComparison />}
       {tab === "criteria" && (
         <CriteriaManager onChanged={() => setResultsRefreshKey((k) => k + 1)} />
       )}

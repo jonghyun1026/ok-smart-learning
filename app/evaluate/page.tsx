@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
 import { DonutGauge } from "@/components/ui/donut-gauge";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { RationaleBlocks } from "@/components/ui/rationale-blocks";
 
 function qualificationBadge(pass: boolean | null | undefined) {
   if (pass === true) return <Badge tone="green">Pass</Badge>;
@@ -280,9 +281,7 @@ export default function EvaluatePage() {
                   AI 총평 {expandedRationale.__overall ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                 </button>
                 {expandedRationale.__overall && (
-                  <p className="mt-1 whitespace-pre-line text-[12px] leading-4 text-brand-muted">
-                    {aiDraft.overall_summary}
-                  </p>
+                  <RationaleBlocks text={aiDraft.overall_summary} className="mt-1" />
                 )}
               </div>
             )}
@@ -368,9 +367,7 @@ export default function EvaluatePage() {
                           AI 채점 근거
                           {isExpanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                         </button>
-                        {isExpanded && (
-                          <p className="text-[12px] leading-4 text-brand-muted">{rationale}</p>
-                        )}
+                        {isExpanded && <RationaleBlocks text={rationale} />}
                       </div>
                     )}
                   </div>

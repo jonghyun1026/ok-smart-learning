@@ -8,6 +8,7 @@ import type { CriteriaData } from "@/lib/scoring";
 import { getAreaColor } from "@/lib/area-colors";
 import { Badge } from "@/components/ui/badge";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { RationaleBlocks } from "@/components/ui/rationale-blocks";
 
 type CompanyLite = { id: string; name: string };
 
@@ -126,9 +127,7 @@ export function AiRationale() {
                 <Sparkles size={15} className="text-brand" />
                 AI 총평
               </span>
-              <p className="whitespace-pre-line text-[13px] leading-5 text-brand-dark">
-                {selected.overall_summary}
-              </p>
+              <RationaleBlocks text={selected.overall_summary} />
             </div>
           )}
 
@@ -176,10 +175,7 @@ export function AiRationale() {
                             colorHex={color}
                             className="max-w-[240px]"
                           />
-                          <div className="flex items-start gap-1.5 rounded-lg bg-brand-bg p-3">
-                            <Sparkles size={13} className="mt-0.5 shrink-0 text-brand" />
-                            <p className="text-[12.5px] leading-5 text-brand-dark">{entry.rationale}</p>
-                          </div>
+                          <RationaleBlocks text={entry.rationale} />
                         </>
                       )}
                       {!entry && (
