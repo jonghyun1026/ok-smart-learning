@@ -15,6 +15,31 @@ import { Badge } from "@/components/ui/badge";
  * label은 companies.documents jsonb의 키(한글)로, evaluation-agent가 그대로 참조하므로
  * docs/schema.md 2.7절과 정확히 일치해야 한다.
  */
+/**
+ * Vercel Functions는 요청 본문이 약 4.5MB를 넘으면 413(Request Entity Too Large)을 돌려준다
+ * (플랫폼 하드 리밋, 서버 코드로 늘릴 수 없음). 파일 선택 시점에 미리 걸러내 업로드를 시도조차
+ * 하지 않고 바로 안내하기 위한 여유 있는 클라이언트 측 상한.
+ */
+const MAX_FILE_SIZE_BYTES = 4 * 1024 * 1024;
+const MAX_FILE_SIZE_LABEL = "4MB";
+
+function splitBySize(files: File[]): { ok: File[]; oversized: File[] } {
+  const ok: File[] = [];
+  const oversized: File[] = [];
+  for (const f of files) {
+    (f.size > MAX_FILE_SIZE_BYTES ? oversized : ok).push(f);
+  }
+  return { ok, oversized };
+}
+
+function warnOversized(oversized: File[]) {
+  if (oversized.length === 0) return;
+  const names = oversized.map((f) => `${f.name} (${(f.size / 1024 / 1024).toFixed(1)}MB)`).join(", ");
+  window.alert(
+    `다음 파일은 ${MAX_FILE_SIZE_LABEL}를 초과해 제외되었습니다: ${names}\n용량을 줄이거나(이미지 해상도 축소 등) PDF로 압축한 뒤 다시 첨부해주세요.`
+  );
+}
+
 const EXTRA_DOCUMENT_TYPES: { slug: string; label: string }[] = [
   { slug: "business_registration", label: "사업자등록증" },
   { slug: "corporate_registry", label: "법인등기부등본 (말소포함, 최근 3개월 이내)" },
@@ -140,16 +165,33 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
     loadCompanies().finally(() => setLoading(false));
   }, [loadCompanies]);
 
-  /** 업체 생성 후 파일 하나를 지정된 docType으로 업로드한다. 실패 시 에러 메시지를 던진다. */
+  /**
+   * 업체 생성 후 파일 하나를 지정된 docType으로 업로드한다. 실패 시 에러 메시지를 던진다.
+   * Vercel Functions는 요청 본문이 약 4.5MB를 넘으면 JSON이 아닌 평문 "Request Entity Too
+   * Large" 응답(413)을 돌려주는데, 과거엔 이를 무조건 res.json()으로 파싱하려다 옆질러
+   * "Unexpected token 'R'... is not valid JSON" 같은 알아보기 힘든 에러로 표시됐다.
+   * 응답 본문을 먼저 텍스트로 읽고 JSON 파싱을 시도해 원인을 정확히 구분한다.
+   */
   async function uploadDoc(companyId: string, docType: string, file: File, labelForError: string) {
     const uploadForm = new FormData();
     uploadForm.append("file", file);
     uploadForm.append("companyId", companyId);
     uploadForm.append("docType", docType);
     const res = await fetch("/api/proposals/upload", { method: "POST", body: uploadForm });
-    const data = await res.json();
+    const rawText = await res.text();
+    let data: { error?: string } | null = null;
+    try {
+      data = rawText ? JSON.parse(rawText) : null;
+    } catch {
+      data = null;
+    }
     if (!res.ok) {
-      throw new Error(`${labelForError} 업로드 실패: ${data.error ?? "알 수 없는 오류"}`);
+      const message =
+        data?.error ??
+        (res.status === 413
+          ? `파일 용량이 너무 큽니다(${MAX_FILE_SIZE_LABEL} 초과). 용량을 줄여 다시 시도해주세요.`
+          : rawText.trim().slice(0, 200) || `업로드 서버 오류(HTTP ${res.status})`);
+      throw new Error(`${labelForError} 업로드 실패: ${message}`);
     }
   }
 
@@ -309,7 +351,8 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
             <div className="text-[13px] font-bold text-brand-dark">
               제출서류 업로드 (.pdf, .docx, .jpg, .png{" "}
               <span className="font-normal text-brand-muted">
-                일부 항목은 .xlsx 가능 · 제안서 외 6종은 파일 여러 개 첨부 가능
+                일부 항목은 .xlsx 가능 · 제안서 외 6종은 파일 여러 개 첨부 가능 · 파일당 최대{" "}
+                {MAX_FILE_SIZE_LABEL}
               </span>
               )
             </div>
@@ -319,7 +362,16 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
                 <input
                   type="file"
                   accept=".pdf,.docx,.jpg,.jpeg,.png"
-                  onChange={(e) => setProposalFile(e.target.files?.[0] ?? null)}
+                  onChange={(e) => {
+                    const picked = e.target.files?.[0] ?? null;
+                    if (picked && picked.size > MAX_FILE_SIZE_BYTES) {
+                      warnOversized([picked]);
+                      e.target.value = "";
+                      setProposalFile(null);
+                      return;
+                    }
+                    setProposalFile(picked);
+                  }}
                   className="w-full rounded-lg border border-brand-border bg-white px-2.5 py-1.5 text-[12px] text-brand-dark file:mr-2 file:rounded-md file:border-0 file:bg-brand-bg file:px-2.5 file:py-1 file:text-[12px] file:font-bold file:text-brand focus:outline-none focus:ring-2 focus:ring-brand/40"
                 />
                 {proposalFile && (
@@ -333,12 +385,12 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
                     type="file"
                     multiple
                     accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png"
-                    onChange={(e) =>
-                      setDocFiles((prev) => ({
-                        ...prev,
-                        [doc.slug]: e.target.files ? Array.from(e.target.files) : [],
-                      }))
-                    }
+                    onChange={(e) => {
+                      const picked = e.target.files ? Array.from(e.target.files) : [];
+                      const { ok, oversized } = splitBySize(picked);
+                      warnOversized(oversized);
+                      setDocFiles((prev) => ({ ...prev, [doc.slug]: ok }));
+                    }}
                     className="w-full rounded-lg border border-brand-border bg-white px-2.5 py-1.5 text-[12px] text-brand-dark file:mr-2 file:rounded-md file:border-0 file:bg-brand-bg file:px-2.5 file:py-1 file:text-[12px] file:font-bold file:text-brand focus:outline-none focus:ring-2 focus:ring-brand/40"
                   />
                   {(docFiles[doc.slug]?.length ?? 0) > 0 && (
