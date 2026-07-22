@@ -403,7 +403,7 @@ export function AiDecisionDashboard() {
                 key={draft.id}
                 className={cn(
                   "flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-brand-border",
-                  idx === 0 && "ring-2 ring-brand/40 shadow-md"
+                  idx === 0 && "shadow-md ring-brand-amber/50"
                 )}
                 style={{ borderTop: `4px solid ${companyColor(draft.company_id)}` }}
               >
@@ -413,7 +413,7 @@ export function AiDecisionDashboard() {
                     <span className="text-[11px] font-bold text-brand-muted">{idx + 1}위</span>
                   </span>
                   {qualified ? (
-                    <Badge tone="brand">협상적격(예상)</Badge>
+                    <Badge tone="green">협상적격(예상)</Badge>
                   ) : (
                     <Badge tone="neutral">기준 미달(예상)</Badge>
                   )}
@@ -462,65 +462,66 @@ export function AiDecisionDashboard() {
 
           <div className={cn(SECTION_CARD, "flex flex-col gap-4")}>
             <span className="text-[13px] font-bold text-brand-dark">업체별 강점 · 보완 필요 항목 (자동 요약)</span>
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+            <div className={cn("grid grid-cols-1 gap-4", ranked.length <= 2 ? "md:grid-cols-2" : "md:grid-cols-3")}>
               {ranked.map(({ draft }) => {
                 const pc = prosCons.get(draft.company_id);
                 const isLowestBid = draft.bidPrice > 0 && draft.bidPrice === lowestBidPrice;
                 return (
-                  <div
-                    key={draft.id}
-                    className="flex flex-col gap-3 rounded-xl p-4"
-                    style={{ borderLeft: `4px solid ${companyColor(draft.company_id)}`, backgroundColor: "#FAF8F6" }}
-                  >
-                    <span className="text-sm font-black text-brand-dark">{draft.companyName}</span>
+                  <div key={draft.id} className="flex flex-col gap-3 rounded-xl border border-brand-border p-4">
+                    <span className="flex items-center gap-2 text-sm font-black text-brand-dark">
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: companyColor(draft.company_id) }} />
+                      {draft.companyName}
+                    </span>
 
-                    <div className="flex flex-col gap-1.5">
-                      <span className="flex items-center gap-1 text-[12px] font-bold text-brand-green">
+                    <div className="flex flex-col gap-1.5 rounded-lg bg-[#EDF7F0] p-3">
+                      <span className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wide text-brand-green">
                         <CheckCircle2 size={13} />
                         강점
                       </span>
                       {isLowestBid && (
-                        <div className="flex items-start gap-1.5 text-[12.5px] text-brand-dark">
+                        <div className="flex items-start gap-1.5 text-[13px] font-medium text-brand-dark">
                           <Wallet size={13} className="mt-0.5 shrink-0 text-brand-green" />
-                          <span>최저 입찰가({draft.bidPrice.toLocaleString()}원)로 가격점수 만점 확보</span>
+                          <span>최저 입찰가로 가격점수 만점</span>
                         </div>
                       )}
-                      {pc?.strengths.map(({ item, pct }) => (
-                        <div key={item.itemNo} className="flex items-start gap-1.5 text-[12.5px] text-brand-dark">
+                      {pc?.strengths.map(({ item }) => (
+                        <div key={item.itemNo} className="flex items-start gap-1.5 text-[13px] font-medium text-brand-dark">
                           <CheckCircle2 size={13} className="mt-0.5 shrink-0 text-brand-green" />
-                          <span>
-                            {item.itemName} <span className="text-brand-muted">({pct}%)</span>
-                          </span>
+                          <span>{item.itemName}</span>
                         </div>
                       ))}
                     </div>
 
-                    <div className="flex flex-col gap-1.5">
-                      <span className="flex items-center gap-1 text-[12px] font-bold text-brand-red">
+                    <div className="flex flex-col gap-1.5 rounded-lg bg-[#FBEEEC] p-3">
+                      <span className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wide text-brand-red">
                         <XCircle size={13} />
                         보완 필요
                       </span>
-                      {pc?.weaknesses.map(({ item, pct }) => (
-                        <div key={item.itemNo} className="flex items-start gap-1.5 text-[12.5px] text-brand-dark">
+                      {pc?.weaknesses.map(({ item }) => (
+                        <div key={item.itemNo} className="flex items-start gap-1.5 text-[13px] font-medium text-brand-dark">
                           <XCircle size={13} className="mt-0.5 shrink-0 text-brand-red" />
-                          <span>
-                            {item.itemName} <span className="text-brand-muted">({pct}%)</span>
-                          </span>
+                          <span>{item.itemName}</span>
                         </div>
                       ))}
                     </div>
 
                     {pc && pc.flagged.length > 0 && (
-                      <div className="flex flex-col gap-1.5 rounded-lg border border-brand-amber/40 bg-[#FFF3DD] p-2.5">
-                        <span className="flex items-center gap-1 text-[12px] font-bold text-brand-amber">
+                      <div className="flex flex-col gap-1.5 rounded-lg bg-[#FFF3DD] p-3">
+                        <span className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wide text-brand-amber">
                           <AlertTriangle size={13} />
-                          사람 검증 필요 항목
+                          사람 검증 필요 {pc.flagged.length > 4 && `(${pc.flagged.length}건)`}
                         </span>
-                        {pc.flagged.map((item) => (
-                          <span key={item.itemNo} className="text-[12px] text-brand-dark">
-                            · {item.itemName}
-                          </span>
+                        {pc.flagged.slice(0, 4).map((item) => (
+                          <div key={item.itemNo} className="flex items-start gap-1.5 text-[13px] font-medium text-brand-dark">
+                            <AlertTriangle size={13} className="mt-0.5 shrink-0 text-brand-amber" />
+                            <span>{item.itemName}</span>
+                          </div>
                         ))}
+                        {pc.flagged.length > 4 && (
+                          <span className="pl-[19px] text-[12px] font-bold text-brand-muted">
+                            +{pc.flagged.length - 4}건 더 (항목 상세 탭에서 확인)
+                          </span>
+                        )}
                       </div>
                     )}
                   </div>
@@ -627,7 +628,12 @@ export function AiDecisionDashboard() {
                       {scoresByCompany.map(({ draft, entry }) => (
                         <div key={draft.id} className="flex flex-col gap-1.5">
                           <div className="flex items-center gap-2">
-                            <Badge tone="brand">{draft.companyName}</Badge>
+                            <span
+                              className="inline-flex w-fit items-center rounded-full px-3.5 py-1 text-[13px] font-bold text-white"
+                              style={{ backgroundColor: companyColor(draft.company_id) }}
+                            >
+                              {draft.companyName}
+                            </span>
                           </div>
                           {entry ? <RationaleBlocks text={entry.rationale} /> : <p className="text-xs text-brand-muted">이 항목에 대한 AI 채점 근거가 없습니다.</p>}
                         </div>
