@@ -37,38 +37,49 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-brand-bg px-4">
+    <div className="flex min-h-screen items-center justify-center px-4 py-10">
       <form
         onSubmit={handleSubmit}
-        className="flex w-full max-w-[380px] flex-col gap-5 rounded-2xl border border-brand-border bg-white p-8 shadow-sm"
+        className="flex w-full max-w-[400px] flex-col gap-6 rounded-card border border-brand-border bg-white p-9 shadow-card"
       >
-        <div className="flex flex-col items-center gap-3">
+        <div className="flex flex-col items-center gap-3.5 text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/logo-wide.png" alt="OK금융그룹" className="h-6 w-auto object-contain" />
-          <p className="text-center text-sm font-bold text-brand-dark">
-            OK학당 스마트러닝 위탁운영 계약 평가시스템
+          <img src="/logo-wide.png" alt="OK금융그룹" className="h-7 w-auto object-contain" />
+          <div className="flex flex-col gap-1">
+            <p className="eyebrow">평가시스템 로그인</p>
+            <p className="text-[15px] font-black leading-snug tracking-[-0.02em] text-brand-brown">
+              OK학당 스마트러닝
+              <br />
+              위탁운영 계약 평가시스템
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label>아이디</Label>
+            <Input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              autoFocus
+              autoComplete="username"
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label>비밀번호</Label>
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+            />
+          </div>
+        </div>
+        {error && (
+          <p className="rounded-control bg-[#FBEEEC] px-3 py-2 text-[13px] font-semibold text-brand-red">
+            {error}
           </p>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label>아이디</Label>
-          <Input
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            autoFocus
-            autoComplete="username"
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <Label>비밀번호</Label>
-          <Input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            autoComplete="current-password"
-          />
-        </div>
-        {error && <p className="text-sm font-semibold text-brand-red">{error}</p>}
-        <Button type="submit" disabled={loading} className="w-full justify-center py-3">
+        )}
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? "로그인 중..." : "로그인"}
         </Button>
       </form>

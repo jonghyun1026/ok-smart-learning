@@ -3,11 +3,88 @@
 @tailwind utilities;
 
 :root {
-  --background: #f5f3ef;
-  --foreground: #2a232a;
+  --background: #f6f5f3;
+  --foreground: #30282a;
+}
+
+/*
+ * OK금융그룹 디지털 UI 디자인 가이드 6.2 — 웜 배경.
+ * 전체 배경은 Warm Gray(bg-brand-bg)로 두고, 그 위에 아주 옅은 Orange·Yellow 라디얼을
+ * 얹어 금융 서비스의 따뜻하고 고급스러운 인상을 만든다. (색상 면적 최소화 원칙)
+ */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  background-image:
+    radial-gradient(circle at 8% -4%, rgba(255, 170, 0, 0.1), transparent 26rem),
+    radial-gradient(circle at 95% 5%, rgba(245, 80, 0, 0.07), transparent 28rem);
+  background-attachment: fixed;
+}
+
+@layer components {
+  /* OK 디자인 가이드 3장 — 섹션 위 오렌지 eyebrow(대문자 자간 강조) */
+  .eyebrow {
+    @apply text-[11px] font-black uppercase tracking-[0.16em] text-brand;
+  }
+}
+
+/*
+ * 인쇄/PDF 저장 모드 (OK 디자인 가이드 11장 · 참조 대시보드의 인쇄·PDF 패턴).
+ * 내비게이션·버튼·목차 등 조작 요소는 숨기고, 내부 스크롤 영역은 펼쳐서 한 장에 담기게 한다.
+ */
+@media print {
+  html {
+    scroll-behavior: auto;
+  }
+  body {
+    background: #fff !important;
+  }
+  body::before {
+    display: none;
+  }
+  header,
+  nav[class*="sticky"] {
+    position: static !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  /* 내부 스크롤(분야 목록 등)을 인쇄 시 전부 펼침 */
+  [class*="overflow-y-auto"],
+  [class*="overflow-x-auto"] {
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  section,
+  .break-avoid {
+    break-inside: avoid;
+  }
+}
+
+/* 웜 스크롤바 (내부 스크롤 목록·테이블 공통) — 참조 대시보드와 동일 톤 */
+@supports (scrollbar-color: auto) {
+  * {
+    scrollbar-color: #cfc6c3 transparent;
+  }
+}
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: padding-box;
+  background-color: #d5ccc8;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background-color: #b9afab;
 }

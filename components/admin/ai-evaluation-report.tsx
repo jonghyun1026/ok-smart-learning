@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
+  LabelList,
   Legend,
   ResponsiveContainer,
   Tooltip,
@@ -19,6 +20,7 @@ import {
   Clock3,
   FileText,
   Gauge,
+  Printer,
   Sparkles,
   Trophy,
 } from "lucide-react";
@@ -55,36 +57,34 @@ function fmt(n: number | null | undefined): string {
   return n.toLocaleString();
 }
 
+/** 히트맵 셀 색 — 항목 만점 대비 비율(0~1)을 웜 오렌지 sequential 램프(옅음→진함)로. */
+function heatColor(ratio: number): string {
+  const t = Math.min(Math.max(ratio, 0), 1);
+  const c0 = [255, 241, 233]; // #FFF1E9 (낮음)
+  const c1 = [217, 67, 0]; // #D94300 (높음)
+  const rgb = c0.map((v, i) => Math.round(v + (c1[i] - v) * t));
+  return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+}
+
 const SECTIONS = [
   { id: "summary", no: "01", label: "핵심 요약" },
-  { id: "radar", no: "02", label: "균형 비교" },
+  { id: "radar", no: "02", label: "부문별 비교" },
   { id: "facts", no: "03", label: "사실 비교·진단" },
   { id: "scores", no: "04", label: "영역별 점수" },
   { id: "detail", no: "05", label: "항목별 근거" },
 ] as const;
 
-/** 번호가 달린 섹션 헤더 — 레포트 격의 위계를 만든다. */
-function SectionHead({
-  no,
-  kicker,
-  title,
-  desc,
-}: {
-  no: string;
-  kicker: string;
-  title: string;
-  desc?: string;
-}) {
+/** 섹션 헤더 — OK 양식(아이콘칩 번호 + 단순 볼드 제목)에 맞춘 위계. */
+function SectionHead({ no, title, desc }: { no: string; title: string; desc?: string }) {
   return (
-    <div className="flex items-start gap-4 border-b-2 border-brand-dark/90 pb-4">
-      <span className="mt-0.5 select-none text-[34px] font-black leading-none tracking-tight text-brand">
-        {no}
-      </span>
-      <div className="flex flex-col gap-1">
-        <span className="text-[11px] font-black uppercase tracking-[0.22em] text-brand-muted">{kicker}</span>
-        <h2 className="text-[22px] font-black leading-tight text-brand-dark">{title}</h2>
-        {desc && <p className="max-w-3xl text-[13px] leading-relaxed text-brand-muted">{desc}</p>}
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-2.5">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-brand-highlight text-[12px] font-black text-brand">
+          {no}
+        </span>
+        <h2 className="text-xl font-black tracking-[-0.02em] text-brand-brown">{title}</h2>
       </div>
+      {desc && <p className="max-w-3xl pl-[38px] text-[13px] leading-relaxed text-brand-muted">{desc}</p>}
     </div>
   );
 }
@@ -148,10 +148,10 @@ export function AiEvaluationReport() {
     const m = new Map<string, string>();
     [...drafts]
       .sort((a, b) => a.company_id.localeCompare(b.company_id))
-      .forEach((d, idx) => m.set(d.company_id, getCompanyColor(idx)));
+      .forEach((d, idx) => m.set(d.company_id, getCompanyColor(idx, d.companyName)));
     return m;
   }, [drafts]);
-  const companyColor = (id: string) => companyColorMap.get(id) ?? "#F04E23";
+  const companyColor = (id: string) => companyColorMap.get(id) ?? "#F55000";
 
   const displayNames = useMemo(() => {
     const counts = new Map<string, number>();
@@ -290,7 +290,7 @@ export function AiEvaluationReport() {
 
   if (drafts.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-brand-border bg-brand-bg p-12 text-center">
+      <div className="flex flex-col items-center gap-2 rounded-card border border-dashed border-brand-border bg-brand-bg p-12 text-center">
         <Sparkles size={24} className="text-brand-muted" />
         <p className="text-sm font-bold text-brand-dark">완료된 AI 평가 초안이 없습니다.</p>
         <p className="max-w-md text-xs leading-relaxed text-brand-muted">
@@ -305,12 +305,15 @@ export function AiEvaluationReport() {
     name: displayNames.get(draft.company_id) ?? draft.companyName,
     id: draft.company_id,
     price: draft.bidPrice,
-  }));
-  const priceScoreData = ranked.map(({ draft, priceScore }) => ({
-    name: displayNames.get(draft.company_id) ?? draft.companyName,
-    id: draft.company_id,
-    score: priceScore,
-  }));
+  }))
+    .sort((a, b) => a.price - b.price); // 낮은 입찰가(유리)부터 위로
+  const priceScoreData = ranked
+    .map(({ draft, priceScore }) => ({
+      name: displayNames.get(draft.company_id) ?? draft.companyName,
+      id: draft.company_id,
+      score: priceScore,
+    }))
+    .sort((a, b) => b.score - a.score); // 높은 환산점수(유리)부터 위로
 
   function CategoryChart({ items }: { items: CriteriaItem[] }) {
     const chartData = items.map((item) => {
@@ -343,7 +346,10 @@ export function AiEvaluationReport() {
               return [`${value}% (${raw ?? "-"}/${max ?? "-"}점)`, name];
             }}
             labelFormatter={(_, payload) => (payload?.[0]?.payload as { fullName?: string })?.fullName ?? ""}
-            contentStyle={{ borderRadius: 10, border: "1px solid #E8E2DD", fontSize: 12 }}
+            cursor={{ fill: "rgba(245,80,0,0.05)" }}
+            contentStyle={{ borderRadius: 9, border: "none", background: "rgba(85,71,74,0.96)", color: "#fff", fontSize: 12 }}
+            labelStyle={{ color: "#fff" }}
+            itemStyle={{ color: "#fff" }}
           />
           <Legend wrapperStyle={{ fontSize: 12, fontWeight: 700 }} iconType="circle" />
           {ranked.map(({ draft }) => (
@@ -361,53 +367,118 @@ export function AiEvaluationReport() {
     );
   }
 
+  /** 항목별 점수 히트맵 — 업체(열) × 항목(행) 격자, 셀 색 농도 = 항목 만점 대비 점수. */
+  function ScoreHeatmap() {
+    return (
+      <div className="w-full overflow-x-auto rounded-card border border-brand-border bg-white shadow-card">
+        <table className="w-full min-w-[560px] border-collapse text-left">
+          <thead>
+            <tr className="border-b border-brand-border bg-brand-alt">
+              <th className="sticky left-0 z-10 w-[236px] min-w-[236px] bg-brand-alt px-4 py-2.5 text-[11px] font-black uppercase tracking-wide text-brand-muted">
+                항목
+              </th>
+              {ranked.map(({ draft }) => (
+                <th key={draft.id} className="px-2 py-2.5 text-center text-[12px] font-black text-brand-brown">
+                  <span className="flex items-center justify-center gap-1.5">
+                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: companyColor(draft.company_id) }} />
+                    {displayNames.get(draft.company_id) ?? draft.companyName}
+                  </span>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {categories.map((cat) => (
+              <Fragment key={cat.key}>
+                <tr>
+                  <td
+                    colSpan={ranked.length + 1}
+                    className="border-y border-brand-border bg-brand-highlight px-4 py-1.5 text-[11px] font-black uppercase tracking-wide text-brand"
+                  >
+                    {cat.label}
+                  </td>
+                </tr>
+                {cat.items.map((item) => (
+                  <tr key={item.itemNo} className="border-b border-brand-border/60 last:border-b-0">
+                    <td className="sticky left-0 z-10 bg-white px-4 py-2 text-[12px] font-bold text-brand-dark">
+                      <span className="text-brand-muted">{item.itemNo}.</span>{" "}
+                      {itemShortName(item.itemName, 24)}
+                    </td>
+                    {ranked.map(({ draft }) => {
+                      const entry = draft.item_scores[item.itemNo] as { score: number } | undefined;
+                      const score = entry ? Number(entry.score) || 0 : null;
+                      const max = item.maxPoints ?? 1;
+                      const ratio = score === null ? 0 : score / max;
+                      return (
+                        <td key={draft.id} className="px-2 py-1.5 text-center">
+                          <span
+                            className="inline-flex min-w-[40px] justify-center rounded-md px-1.5 py-1 text-[12px] font-black tabular-nums"
+                            style={{
+                              backgroundColor: score === null ? "#F6F5F3" : heatColor(ratio),
+                              color: ratio > 0.55 ? "#fff" : "#55474A",
+                            }}
+                            title={`${draft.companyName} · ${item.itemName}: ${score ?? "-"}/${max}점 (${Math.round(ratio * 100)}%)`}
+                          >
+                            {score === null ? "-" : score}
+                          </span>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
   const setRef = (id: string) => (el: HTMLElement | null) => {
     sectionRefs.current[id] = el;
   };
 
   return (
     <div className="flex flex-col gap-8">
-      {/* ── 레포트 헤더 ── */}
-      <header className="relative overflow-hidden rounded-3xl bg-brand-dark px-8 py-9 text-white shadow-sm">
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.12]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 88% 8%, #F04E23 0, transparent 42%), radial-gradient(circle at 12% 96%, #FF7A47 0, transparent 40%)",
-          }}
-        />
-        <div className="relative flex flex-col gap-4">
+      {/* ── 레포트 헤더 (OK 양식: 차콜 그라디언트 히어로) ── */}
+      <header className="rounded-card bg-gradient-to-br from-[#2A232A] to-brand-dark2 p-9 shadow-card">
+        <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em]">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-highlight px-3 py-1 text-[11px] font-bold text-brand">
               <Sparkles size={12} /> AI 초안
             </span>
-            <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/55">
-              Evaluation Report
-            </span>
+            <p className="text-[13px] font-bold text-brand-light">OK금융그룹 인재개발팀</p>
           </div>
-          <h1 className="text-[30px] font-black leading-tight md:text-[36px]">AI 평가 레포트</h1>
-          <p className="max-w-2xl text-[13.5px] leading-relaxed text-white/70">
-            제안서에서 추출한 <b className="text-white">사실</b>과 채점 <b className="text-white">점수</b>를 한 흐름으로
-            엮은 업체 비교 브리프입니다. 점수·순위는 모두 AI 초안(추정치)이며, 확정은 평가입력 화면에서 사람이 합니다.
-          </p>
-          <div className="mt-1 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] font-semibold text-white/75">
-            <span className="flex items-center gap-1.5">
-              <Trophy size={13} className="text-brand-amberLight" /> 비교 업체 {drafts.length}개사
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Gauge size={13} className="text-brand-amberLight" /> 협상적격(예상) 기준 총점{" "}
-              {criteria.settings.negotiationThreshold}점 이상 AND 필수자격 Pass
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock3 size={13} className="text-brand-amberLight" /> 기준일{" "}
-              {new Date().toLocaleDateString("ko-KR")}
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="no-print inline-flex min-h-[34px] shrink-0 items-center gap-1.5 rounded-control border border-white/25 bg-white/10 px-3 text-[12px] font-extrabold text-white transition-colors hover:bg-white/20"
+          >
+            <Printer size={13} /> 인쇄 / PDF 저장
+          </button>
+        </div>
+        <h1 className="mt-3 text-[26px] font-black leading-snug text-white">AI 평가 레포트</h1>
+        <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-[#D8CFD3]">
+          제안서에서 추출한 사실과 채점 점수를 한 흐름으로 엮은 업체 비교 브리프입니다. 점수·순위는 모두 AI
+          초안(추정치)이며, 확정은 평가입력 화면에서 사람이 합니다.
+        </p>
+        <div className="mt-4 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] font-semibold text-[#D8CFD3]">
+          <span className="flex items-center gap-1.5">
+            <Trophy size={13} className="text-brand-light" /> 비교 업체 {drafts.length}개사
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Gauge size={13} className="text-brand-light" /> 협상적격(예상) 기준 총점{" "}
+            {criteria.settings.negotiationThreshold}점 이상 AND 필수자격 Pass
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Clock3 size={13} className="text-brand-light" /> 기준일{" "}
+            {new Date().toLocaleDateString("ko-KR")}
+          </span>
         </div>
       </header>
 
       {/* ── 스티키 목차 ── */}
-      <nav className="sticky top-0 z-20 -mx-1 flex flex-wrap gap-1.5 rounded-2xl border border-brand-border bg-brand-alt/85 px-2 py-2 backdrop-blur">
+      <nav className="no-print sticky top-[76px] z-20 flex flex-wrap gap-1 rounded-card border border-brand-border bg-white/90 px-2 py-2 shadow-card backdrop-blur-md">
         {SECTIONS.map((s) => {
           const active = activeSection === s.id;
           return (
@@ -416,11 +487,11 @@ export function AiEvaluationReport() {
               type="button"
               onClick={() => scrollTo(s.id)}
               className={cn(
-                "flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[12.5px] font-bold transition-all",
-                active ? "bg-brand-dark text-white shadow-sm" : "text-brand-muted hover:text-brand-dark"
+                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px] font-bold transition-colors",
+                active ? "bg-brand-highlight text-brand" : "text-brand-muted hover:bg-brand-bg hover:text-brand-dark"
               )}
             >
-              <span className={cn("text-[11px] font-black", active ? "text-brand-amberLight" : "text-brand")}>
+              <span className={cn("text-[11px] font-black", active ? "text-brand" : "text-brand-muted")}>
                 {s.no}
               </span>
               {s.label}
@@ -443,7 +514,6 @@ export function AiEvaluationReport() {
       <section ref={setRef("summary")} id="summary" className="flex scroll-mt-20 flex-col gap-6">
         <SectionHead
           no="01"
-          kicker="Executive Summary"
           title="핵심 요약 — 추정 순위 한눈에"
           desc="AI 초안 점수 기준 순위입니다. 큰 숫자는 추정 총점, 막대는 기술·가격 배점 대비 비율입니다."
         />
@@ -452,17 +522,13 @@ export function AiEvaluationReport() {
             <div
               key={draft.id}
               className={cn(
-                "relative flex flex-col gap-4 overflow-hidden rounded-2xl bg-white p-6 shadow-sm ring-1 ring-brand-border",
-                idx === 0 && "shadow-md ring-2 ring-brand-amber/60"
+                "flex flex-col gap-4 rounded-card border bg-white p-6 shadow-card",
+                idx === 0 ? "border-brand ring-1 ring-brand/20" : "border-brand-border"
               )}
             >
-              <span
-                className="absolute inset-x-0 top-0 h-1.5"
-                style={{ backgroundColor: companyColor(draft.company_id) }}
-              />
-              <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5">
-                  {idx === 0 && <Trophy size={16} className="text-brand-amber" />}
+                  {idx === 0 && <Trophy size={15} className="text-brand" />}
                   <span className="text-[11px] font-black uppercase tracking-wider text-brand-muted">
                     {idx + 1}위
                   </span>
@@ -474,8 +540,11 @@ export function AiEvaluationReport() {
                 )}
               </div>
               <div className="flex flex-col gap-0.5">
-                <span className="text-base font-black text-brand-dark">{draft.companyName}</span>
-                <span className="text-[12px] text-brand-muted">{fmt(draft.bidPrice)}원</span>
+                <span className="flex items-center gap-2 text-base font-black text-brand-dark">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: companyColor(draft.company_id) }} />
+                  {draft.companyName}
+                </span>
+                <span className="pl-[18px] text-[12px] text-brand-muted">{fmt(draft.bidPrice)}원</span>
               </div>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-[52px] font-black leading-none tracking-tight text-brand-dark tabular-nums">
@@ -483,19 +552,34 @@ export function AiEvaluationReport() {
                 </span>
                 <span className="text-sm font-bold text-brand-muted">/ {criteria.grandTotalPoints}</span>
               </div>
-              <div className="flex flex-col gap-2 pt-1">
-                <div className="flex items-center gap-2">
-                  <span className="w-[46px] shrink-0 text-[11px] text-brand-muted">기술</span>
-                  <ProgressBar value={technicalTotal} max={criteria.technicalTotalPoints} colorHex={companyColor(draft.company_id)} className="flex-1" />
-                  <span className="w-[54px] shrink-0 text-right text-[11px] font-bold text-brand-dark tabular-nums">
-                    {technicalTotal}/{criteria.technicalTotalPoints}
-                  </span>
+              {/* 총점 대비 기술+가격 구성 스택 막대 — 달성도와 기술/가격 비중을 한 막대에 */}
+              <div className="flex flex-col gap-1.5 pt-1">
+                <div className="flex h-3 w-full overflow-hidden rounded-full bg-brand-bg">
+                  <div
+                    className="h-full border-r-2 border-white"
+                    style={{
+                      width: `${(technicalTotal / criteria.grandTotalPoints) * 100}%`,
+                      backgroundColor: companyColor(draft.company_id),
+                    }}
+                    title={`기술 ${technicalTotal}/${criteria.technicalTotalPoints}점`}
+                  />
+                  <div
+                    className="h-full"
+                    style={{
+                      width: `${(priceScore / criteria.grandTotalPoints) * 100}%`,
+                      backgroundColor: `${companyColor(draft.company_id)}80`,
+                    }}
+                    title={`가격 ${priceScore}/${criteria.priceTotalPoints}점`}
+                  />
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-[46px] shrink-0 text-[11px] text-brand-muted">가격</span>
-                  <ProgressBar value={priceScore} max={criteria.priceTotalPoints} colorHex={companyColor(draft.company_id)} className="flex-1" />
-                  <span className="w-[54px] shrink-0 text-right text-[11px] font-bold text-brand-dark tabular-nums">
-                    {priceScore}/{criteria.priceTotalPoints}
+                <div className="flex justify-between text-[11px] font-bold tabular-nums text-brand-muted">
+                  <span className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: companyColor(draft.company_id) }} />
+                    기술 {technicalTotal}/{criteria.technicalTotalPoints}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <span className="h-2 w-2 rounded-sm" style={{ backgroundColor: `${companyColor(draft.company_id)}80` }} />
+                    가격 {priceScore}/{criteria.priceTotalPoints}
                   </span>
                 </div>
               </div>
@@ -504,7 +588,7 @@ export function AiEvaluationReport() {
         </div>
 
         {/* 지표 한눈에 */}
-        <div className="w-full overflow-x-auto rounded-2xl border border-brand-border bg-white shadow-sm">
+        <div className="w-full overflow-x-auto rounded-card border border-brand-border bg-white shadow-card">
           <table className="w-full min-w-[520px] border-collapse text-left">
             <thead>
               <tr className="border-b border-brand-border bg-brand-alt">
@@ -567,19 +651,18 @@ export function AiEvaluationReport() {
         </div>
       </section>
 
-      {/* ── 02 균형 비교 (레이더) ── */}
+      {/* ── 02 부문별 점수 비교 (레이더) ── */}
       <section ref={setRef("radar")} id="radar" className="flex scroll-mt-20 flex-col gap-6">
         <SectionHead
           no="02"
-          kicker="Balance"
-          title="균형 비교 — 영역별 강약 프로파일"
-          desc="영역별 점수(가격 포함)를 영역 만점 대비 백분율로 정규화해 겹쳐 봅니다. 넓게 퍼질수록 고르게 강합니다."
+          title="부문별 점수 비교 — 어디가 강하고 약한지"
+          desc="부문별 점수(가격 포함)를 부문 만점 대비 백분율로 정규화해 겹쳐 봅니다. 넓게 퍼질수록 고르게 강합니다."
         />
         <CompanyRadarChart
           criteria={criteria}
           companies={radarRows}
-          title="영역별 강약 프로파일"
-          description="영역별 점수(가격 포함)를 영역 만점 대비 백분율로 정규화해 겹쳐 표시합니다."
+          title="부문별 점수 비교"
+          description="부문별 점수(가격 포함)를 부문 만점 대비 백분율로 정규화해 겹쳐 표시합니다."
           colorFor={companyColor}
         />
       </section>
@@ -588,7 +671,6 @@ export function AiEvaluationReport() {
       <section ref={setRef("facts")} id="facts" className="flex scroll-mt-20 flex-col gap-6">
         <SectionHead
           no="03"
-          kicker="What They Proposed"
           title="사실 비교 · 종합 진단"
           desc="점수가 아니라 '무엇을 제안했는가' — 콘텐츠 규모·비용/무상제공·부가서비스·운영 장단점과 업체별 종합 진단입니다. (담당자 확인) 태그는 제안서 밖 확인 사항입니다."
         />
@@ -599,25 +681,25 @@ export function AiEvaluationReport() {
       <section ref={setRef("scores")} id="scores" className="flex scroll-mt-20 flex-col gap-6">
         <SectionHead
           no="04"
-          kicker="Scores"
           title="영역별 점수 분석"
           desc="세부항목 점수를 각 항목 만점 대비 비율(%)로 나란히 봅니다. 비용은 제안가와 가격환산점수를 함께 표시합니다."
         />
 
         {/* 비용 */}
-        <div className="grid grid-cols-1 gap-6 rounded-2xl border border-brand-border bg-white p-6 shadow-sm lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 rounded-card border border-brand-border bg-white p-6 shadow-card lg:grid-cols-2">
           <div className="flex flex-col gap-2">
             <span className="text-[12px] font-bold text-brand-muted">입찰가격 (원, 낮을수록 유리)</span>
             <ResponsiveContainer width="100%" height={priceCostData.length * 56 + 24}>
-              <BarChart data={priceCostData} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
+              <BarChart data={priceCostData} layout="vertical" margin={{ left: 8, right: 64, top: 4, bottom: 4 }}>
                 <CartesianGrid horizontal={false} stroke="#eeece7" />
                 <XAxis type="number" tick={{ fontSize: 11, fill: "#8A7F86" }} tickFormatter={(v: number) => `${Math.round(v / 10000).toLocaleString()}만`} axisLine={{ stroke: "#eeece7" }} tickLine={false} />
                 <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12, fontWeight: 700, fill: "#2A232A" }} axisLine={{ stroke: "#eeece7" }} tickLine={false} />
-                <Tooltip formatter={(value) => [`${Number(value).toLocaleString()}원`, "입찰가"]} contentStyle={{ borderRadius: 10, border: "1px solid #E8E2DD", fontSize: 12 }} />
+                <Tooltip cursor={{ fill: "rgba(245,80,0,0.05)" }} formatter={(value) => [`${Number(value).toLocaleString()}원`, "입찰가"]} contentStyle={{ borderRadius: 9, border: "none", background: "rgba(85,71,74,0.96)", color: "#fff", fontSize: 12 }} labelStyle={{ color: "#fff" }} />
                 <Bar dataKey="price" radius={[0, 4, 4, 0]} barSize={18}>
                   {priceCostData.map((d) => (
                     <Cell key={d.id} fill={companyColor(d.id)} />
                   ))}
+                  <LabelList dataKey="price" position="right" formatter={(v) => `${Math.round(Number(v) / 10000).toLocaleString()}만원`} style={{ fontSize: 11, fontWeight: 800, fill: "#55474A" }} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -627,15 +709,16 @@ export function AiEvaluationReport() {
               가격환산점수 (/{criteria.priceTotalPoints}점, 최저입찰가 기준 자동계산)
             </span>
             <ResponsiveContainer width="100%" height={priceScoreData.length * 56 + 24}>
-              <BarChart data={priceScoreData} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
+              <BarChart data={priceScoreData} layout="vertical" margin={{ left: 8, right: 44, top: 4, bottom: 4 }}>
                 <CartesianGrid horizontal={false} stroke="#eeece7" />
                 <XAxis type="number" domain={[0, criteria.priceTotalPoints]} tick={{ fontSize: 11, fill: "#8A7F86" }} axisLine={{ stroke: "#eeece7" }} tickLine={false} />
                 <YAxis type="category" dataKey="name" width={90} tick={{ fontSize: 12, fontWeight: 700, fill: "#2A232A" }} axisLine={{ stroke: "#eeece7" }} tickLine={false} />
-                <Tooltip formatter={(value) => [`${value}점`, "가격점수"]} contentStyle={{ borderRadius: 10, border: "1px solid #E8E2DD", fontSize: 12 }} />
+                <Tooltip cursor={{ fill: "rgba(245,80,0,0.05)" }} formatter={(value) => [`${value}점`, "가격점수"]} contentStyle={{ borderRadius: 9, border: "none", background: "rgba(85,71,74,0.96)", color: "#fff", fontSize: 12 }} labelStyle={{ color: "#fff" }} />
                 <Bar dataKey="score" radius={[0, 4, 4, 0]} barSize={18}>
                   {priceScoreData.map((d) => (
                     <Cell key={d.id} fill={companyColor(d.id)} />
                   ))}
+                  <LabelList dataKey="score" position="right" formatter={(v) => `${Number(v)}점`} style={{ fontSize: 11, fontWeight: 800, fill: "#55474A" }} />
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -645,11 +728,29 @@ export function AiEvaluationReport() {
         {/* 카테고리별 항목 점수 */}
         <div className="grid grid-cols-1 gap-5 xl:grid-cols-2">
           {categories.map((cat) => (
-            <div key={cat.key} className="flex flex-col gap-3 rounded-2xl border border-brand-border bg-white p-6 shadow-sm">
-              <span className="text-[13px] font-black text-brand-dark">{cat.label}</span>
+            <div key={cat.key} className="flex flex-col gap-3 rounded-card border border-brand-border bg-white p-6 shadow-card">
+              <span className="text-[13px] font-black text-brand-brown">{cat.label}</span>
               <CategoryChart items={cat.items} />
             </div>
           ))}
+        </div>
+
+        {/* 항목별 점수 히트맵 — 업체 × 항목 한 장 요약 */}
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[13px] font-black text-brand-brown">
+              항목별 점수 히트맵 <span className="font-bold text-brand-muted">(업체 × 항목)</span>
+            </span>
+            <span className="flex items-center gap-2 text-[11px] font-bold text-brand-muted">
+              낮음
+              <span
+                className="h-2.5 w-24 rounded-full"
+                style={{ background: "linear-gradient(90deg, #FFF1E9, #F55000, #D94300)" }}
+              />
+              높음 <span className="text-brand-muted/80">· 항목 만점 대비</span>
+            </span>
+          </div>
+          <ScoreHeatmap />
         </div>
       </section>
 
@@ -657,14 +758,13 @@ export function AiEvaluationReport() {
       <section ref={setRef("detail")} id="detail" className="flex scroll-mt-20 flex-col gap-6">
         <SectionHead
           no="05"
-          kicker="Rationale"
           title="항목별 상세 근거"
           desc="각 세부항목을 펼치면 업체별 AI 채점 근거(인용→확인서류 대조→등급 판단→감점→검증 플래그)를 볼 수 있습니다."
         />
         <div className="flex flex-col gap-5">
           {categories.map((cat) => (
-            <div key={`detail-${cat.key}`} className="rounded-2xl border border-brand-border bg-white p-6 shadow-sm">
-              <div className="border-b border-brand-border pb-2.5 text-[13px] font-black text-brand-dark">{cat.label}</div>
+            <div key={`detail-${cat.key}`} className="rounded-card border border-brand-border bg-white p-6 shadow-card">
+              <div className="border-b border-brand-border pb-2.5 text-[13px] font-black text-brand-brown">{cat.label}</div>
               {cat.items.map((item) => {
                 const scoresByCompany = ranked.map(({ draft }) => ({
                   draft,

@@ -3,6 +3,10 @@ import scheduleData from "@/data/schedule.json";
 import { getCriteriaData } from "@/lib/scoring";
 import { getAreaColor } from "@/lib/area-colors";
 import { ProgressBar } from "@/components/ui/progress-bar";
+import { PageHero } from "@/components/ui/page-hero";
+import { SectionTitle } from "@/components/ui/section-title";
+import { KpiTile } from "@/components/ui/kpi-tile";
+import { Card } from "@/components/ui/card";
 
 export const dynamic = "force-dynamic";
 
@@ -39,151 +43,124 @@ function computeDeadlineDday(): { label: string; date: string } {
   return { label, date: deadlinePhase.date };
 }
 
+const SHELL = "mx-auto flex w-full max-w-[1560px] flex-col gap-7 px-4 pb-16 pt-6 sm:px-6 lg:px-7";
+
 export default async function OverviewPage() {
   const criteria = await getCriteriaData();
   const scoreAreas = criteria.areas.filter((a) => a.type === "score");
   const dday = computeDeadlineDday();
 
-  const statTiles = [
-    {
-      icon: Target,
-      label: "총 배점",
-      value: `${criteria.grandTotalPoints}점`,
-      sub: `기술 ${criteria.technicalTotalPoints} + 가격 ${criteria.priceTotalPoints}`,
-    },
-    {
-      icon: ShieldCheck,
-      label: "협상적격 기준",
-      value: `${criteria.settings.negotiationThreshold}점`,
-      sub: "총점 이상 AND 필수자격 Pass",
-    },
-    {
-      icon: CalendarClock,
-      label: "입찰공고 마감",
-      value: dday.label,
-      sub: dday.date.replaceAll("-", "."),
-    },
-    {
-      icon: Users,
-      label: "교육대상인원",
-      value: "약 1,800명",
-      sub: "연간 예상수강인원",
-    },
-  ];
-
   return (
-    <main className="flex flex-col gap-6 px-8 py-10 md:px-16">
-      {/* Hero */}
-      <section className="rounded-2xl bg-gradient-to-br from-[#2A232A] to-brand-dark2 p-9 shadow-sm">
-        <p className="text-[13px] font-bold text-brand-light">OK금융그룹 인재개발팀</p>
-        <h1 className="mt-2 text-[26px] font-black leading-snug text-white">
-          2026~2027년 OK학당 스마트러닝 교육 위탁운영 용역
-        </h1>
-        <p className="mt-2 text-[14px] text-[#D8CFD3]">
-          현 계약기간 2025.9.1 ~ 2026.8.31 · 계약 종료 전 신규 계약(공개경쟁입찰) 절차 진행 중
-        </p>
-      </section>
+    <main className={SHELL}>
+      <PageHero
+        eyebrow="OK금융그룹 인재개발팀"
+        title="2026~2027년 OK학당 스마트러닝 교육 위탁운영 용역"
+        description="현 계약기간 2025.9.1 ~ 2026.8.31 · 계약 종료 전 신규 계약(공개경쟁입찰) 절차 진행 중입니다. 아래에서 사업 개요·일정·평가 배점을 확인하고 관련 문서를 내려받을 수 있습니다."
+        actions={
+          <>
+            <a
+              href={RFP_FILE_HREF}
+              download
+              className="inline-flex min-h-[42px] items-center gap-2 rounded-control border border-brand bg-brand px-4 text-sm font-extrabold text-white shadow-primary transition-[transform,background-color] duration-150 hover:-translate-y-px hover:bg-brand-deep"
+            >
+              <Download size={16} />
+              RFP 원문 다운로드
+            </a>
+            <a
+              href={CRITERIA_GUIDE_FILE_HREF}
+              download
+              className="inline-flex min-h-[42px] items-center gap-2 rounded-control border border-brand-borderStrong bg-white px-4 text-sm font-extrabold text-brand-brown transition-[transform,border-color] duration-150 hover:-translate-y-px hover:border-brand hover:text-brand"
+            >
+              <Download size={16} />
+              세부평가기준 안내
+            </a>
+          </>
+        }
+      />
 
-      {/* Highlight stat tiles */}
-      <section className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {statTiles.map((tile) => (
-          <div
-            key={tile.label}
-            className="flex flex-col gap-3 rounded-xl border border-brand-border bg-white p-5"
-          >
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-highlight text-brand">
-              <tile.icon size={18} />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[12px] font-semibold text-brand-muted">{tile.label}</span>
-              <span className="text-xl font-black text-brand-dark">{tile.value}</span>
-              <span className="text-[11px] text-brand-muted">{tile.sub}</span>
-            </div>
-          </div>
-        ))}
-      </section>
-
-      {/* 문서 다운로드 */}
-      <section className="flex flex-col gap-4 rounded-xl border border-brand-border bg-white p-5 sm:flex-row">
-        <div className="flex flex-1 items-center justify-between gap-4 rounded-lg bg-brand-bg p-4">
-          <div className="flex flex-col gap-1">
-            <div className="text-[15px] font-bold text-brand-dark whitespace-nowrap">
-              평가 기준 안내 RFP (참고용)
-            </div>
-            <p className="text-[13px] text-brand-muted">
-              제안요청서(RFP) 원문 전체를 다운로드하여 확인할 수 있습니다.
-            </p>
-          </div>
-          <a
-            href={RFP_FILE_HREF}
-            download
-            className="flex shrink-0 items-center gap-2 rounded-lg bg-brand px-5 py-3 text-sm font-bold text-white hover:bg-brand/90"
-          >
-            <Download size={16} />
-            RFP 원문 다운로드
-          </a>
-        </div>
-        <div className="flex flex-1 items-center justify-between gap-4 rounded-lg bg-brand-bg p-4">
-          <div className="flex flex-col gap-1">
-            <div className="text-[15px] font-bold text-brand-dark whitespace-nowrap">
-              세부 평가기준 안내
-            </div>
-            <p className="text-[13px] text-brand-muted">
-              배점·확인서류가 정리된 세부 평가기준 안내 문서를 다운로드할 수 있습니다.
-            </p>
-          </div>
-          <a
-            href={CRITERIA_GUIDE_FILE_HREF}
-            download
-            className="flex shrink-0 items-center gap-2 rounded-lg border border-brand bg-white px-5 py-3 text-sm font-bold text-brand hover:bg-brand-highlight"
-          >
-            <Download size={16} />
-            세부평가기준 다운로드
-          </a>
-        </div>
+      {/* 핵심 지표 */}
+      <section className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <KpiTile
+          icon={Target}
+          label="총 배점"
+          value={criteria.grandTotalPoints}
+          unit="점"
+          sub={`기술 ${criteria.technicalTotalPoints} + 가격 ${criteria.priceTotalPoints}`}
+          accent="#F55000"
+          soft="#FFF1E9"
+        />
+        <KpiTile
+          icon={ShieldCheck}
+          label="협상적격 기준"
+          value={criteria.settings.negotiationThreshold}
+          unit="점"
+          sub="총점 이상 AND 필수자격 Pass"
+          accent="#18875E"
+          soft="#E7F4EE"
+        />
+        <KpiTile
+          icon={CalendarClock}
+          label="입찰공고 마감"
+          value={dday.label}
+          sub={dday.date.replaceAll("-", ".")}
+          accent="#E39400"
+          soft="#FFF7DF"
+        />
+        <KpiTile
+          icon={Users}
+          label="교육대상인원"
+          value="약 1,800명"
+          sub="연간 예상수강인원"
+          accent="#55474A"
+          soft="#F0EDEC"
+        />
       </section>
 
       {/* 사업 정보 */}
-      <h2 className="text-xl font-bold text-brand-dark">사업 정보</h2>
-      <section className="w-full overflow-hidden rounded-xl border border-brand-border bg-white">
+      <SectionTitle icon={Target}>사업 정보</SectionTitle>
+      <Card className="overflow-hidden">
         {BIZ_INFO.map((row, i) => (
           <div key={row.label} className={`flex ${i > 0 ? "border-t border-brand-border" : ""}`}>
-            <div className="w-40 shrink-0 bg-brand-bg p-4 text-sm font-bold text-brand-dark">
+            <div className="w-40 shrink-0 bg-brand-alt p-4 text-[13px] font-black text-brand-brown">
               {row.label}
             </div>
-            <div className="flex-1 p-4 text-sm leading-5 text-brand-dark">{row.value}</div>
+            <div className="flex-1 p-4 text-sm leading-6 text-brand-dark">{row.value}</div>
           </div>
         ))}
-      </section>
+      </Card>
 
       {/* 입찰 일정 */}
-      <h2 className="text-xl font-bold text-brand-dark">입찰 일정</h2>
-      <section className="w-full overflow-hidden rounded-xl border border-brand-border bg-white">
-        <div className="flex bg-brand-dark p-3 px-4">
-          <div className="w-[220px] shrink-0 text-[13px] font-bold text-white">일정</div>
-          <div className="flex-1 text-[13px] font-bold text-white">내용</div>
+      <SectionTitle icon={CalendarClock}>입찰 일정</SectionTitle>
+      <Card className="overflow-hidden">
+        <div className="flex border-b border-brand-border bg-brand-alt p-3 px-4">
+          <div className="w-[220px] shrink-0 text-[11px] font-black uppercase tracking-wide text-brand-muted">
+            일정
+          </div>
+          <div className="flex-1 text-[11px] font-black uppercase tracking-wide text-brand-muted">
+            내용
+          </div>
         </div>
         {scheduleData.phases.map((phase, i) => (
           <div
             key={phase.date}
-            className={`flex border-t border-brand-border p-3 px-4 ${
-              i % 2 === 1 ? "bg-brand-alt" : "bg-white"
+            className={`flex border-t border-brand-border p-3 px-4 transition-colors hover:bg-brand-hoverSoft ${
+              i % 2 === 1 ? "bg-brand-alt/40" : "bg-white"
             }`}
           >
-            <div className="w-[220px] shrink-0 text-sm font-bold text-brand-dark">
+            <div className="w-[220px] shrink-0 text-sm font-bold text-brand-brown">
               {phase.displayDate ??
                 (phase.dateStart
                   ? `${phase.dateStart.replaceAll("-", ".")} ~ ${phase.date.replaceAll("-", ".")}`
                   : `${phase.prefix ?? ""}${phase.date.replaceAll("-", ".")}`)}
             </div>
-            <div className="flex-1 text-sm leading-5 text-brand-dark">{phase.label}</div>
+            <div className="flex-1 text-sm leading-6 text-brand-dark">{phase.label}</div>
           </div>
         ))}
-      </section>
+      </Card>
 
       {/* 평가 구성 비율 */}
-      <h2 className="text-xl font-bold text-brand-dark">평가 구성 비율</h2>
-      <section className="w-full rounded-xl border border-brand-border bg-white p-6">
+      <SectionTitle icon={ShieldCheck}>평가 구성 비율</SectionTitle>
+      <Card className="p-6">
         <div className="flex h-4 w-full overflow-hidden rounded-full">
           {scoreAreas.map((area, i) => (
             <div
@@ -203,25 +180,28 @@ export default async function OverviewPage() {
                 className="h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: getAreaColor(i) }}
               />
-              <span className="font-semibold text-brand-dark">{area.name}</span>
-              <span className="ml-auto font-bold text-brand-muted">{area.maxPoints}점</span>
+              <span className="font-bold text-brand-brown">{area.name}</span>
+              <span className="ml-auto font-black text-brand-muted">{area.maxPoints}점</span>
             </div>
           ))}
         </div>
-      </section>
+      </Card>
 
       {/* 평가 배점 구성 */}
-      <div className="flex w-full items-center justify-between">
-        <h2 className="text-xl font-bold text-brand-dark">평가 배점 구성</h2>
-        <span className="text-[13px] font-bold text-brand">
-          세부 항목은 [세부평가기준] 탭에서 확인
-        </span>
-      </div>
-      <section className="w-full overflow-hidden rounded-xl border border-brand-border bg-white">
-        <div className="flex bg-brand-dark p-3 px-4">
-          <div className="w-[60px] shrink-0 text-[13px] font-bold text-white">#</div>
-          <div className="flex-1 text-[13px] font-bold text-white">평가영역</div>
-          <div className="w-[160px] shrink-0 text-right text-[13px] font-bold text-white">배점</div>
+      <SectionTitle icon={Target} aside="세부 항목은 [세부평가기준] 탭에서 확인">
+        평가 배점 구성
+      </SectionTitle>
+      <Card className="overflow-hidden">
+        <div className="flex border-b border-brand-border bg-brand-alt p-3 px-4">
+          <div className="w-[60px] shrink-0 text-[11px] font-black uppercase tracking-wide text-brand-muted">
+            #
+          </div>
+          <div className="flex-1 text-[11px] font-black uppercase tracking-wide text-brand-muted">
+            평가영역
+          </div>
+          <div className="w-[160px] shrink-0 text-right text-[11px] font-black uppercase tracking-wide text-brand-muted">
+            배점
+          </div>
         </div>
         {criteria.areas.map((area, i) => {
           const colorIndex = scoreAreas.findIndex((a) => a.code === area.code);
@@ -229,15 +209,18 @@ export default async function OverviewPage() {
           return (
             <div
               key={area.code}
-              className={`flex items-center gap-4 border-t border-brand-border p-3 px-4 ${
-                i % 2 === 1 ? "bg-brand-alt" : "bg-white"
+              className={`flex items-center gap-4 border-t border-brand-border p-3 px-4 transition-colors hover:bg-brand-hoverSoft ${
+                i % 2 === 1 ? "bg-brand-alt/40" : "bg-white"
               }`}
             >
               <div className="w-[60px] shrink-0">
-                <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
+                <span
+                  className="inline-block h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
               </div>
               <div className="flex flex-1 flex-col gap-1.5">
-                <span className="text-sm font-bold text-brand-dark">{area.name}</span>
+                <span className="text-sm font-bold text-brand-brown">{area.name}</span>
                 {area.type === "score" && (
                   <ProgressBar
                     value={area.maxPoints}
@@ -247,31 +230,31 @@ export default async function OverviewPage() {
                   />
                 )}
               </div>
-              <div className="w-[160px] shrink-0 text-right text-sm font-bold text-brand-dark">
+              <div className="w-[160px] shrink-0 text-right text-sm font-black text-brand-brown">
                 {area.type === "pass_fail" ? "게이트(Pass/Fail)" : `${area.maxPoints}점`}
               </div>
             </div>
           );
         })}
-        <div className="flex items-center border-t border-brand-border bg-brand p-3.5 px-4">
+        <div className="flex items-center border-t border-brand-border bg-brand-highlight p-3.5 px-4">
           <div className="w-[60px] shrink-0" />
-          <div className="flex-1 text-[15px] font-black text-white">
+          <div className="flex-1 text-[15px] font-black text-brand-brown">
             합계 (기술 {criteria.technicalTotalPoints}점 + 가격 {criteria.priceTotalPoints}점)
           </div>
-          <div className="w-[160px] shrink-0 text-right text-base font-black text-white">
+          <div className="w-[160px] shrink-0 text-right text-base font-black text-brand">
             {criteria.grandTotalPoints}점
           </div>
         </div>
-      </section>
+      </Card>
 
       {/* Footer */}
-      <footer className="mt-6 flex w-full flex-col gap-1.5 rounded-xl bg-brand-bg p-8">
-        <div className="text-[13px] font-bold text-brand-dark">
+      <footer className="mt-4 flex w-full flex-col gap-1.5 rounded-card border border-brand-border bg-brand-alt p-8">
+        <div className="text-[13px] font-bold text-brand-brown">
           OK금융그룹 인재개발팀 · 문의: 박종현 사원 / jhyun.park@okfngroup.com / 02-3704-9791
         </div>
-        <p className="text-xs text-brand-muted">
-          본 시스템은 오프라인으로 접수된 제출자료를 평가·비교하기 위한 내부용 도구이며,
-          배점·가격산식·동점규칙은 담당자 최종 검수 후 확정됩니다.
+        <p className="text-xs leading-relaxed text-brand-muted">
+          본 시스템은 오프라인으로 접수된 제출자료를 평가·비교하기 위한 내부용 도구이며, 배점·가격산식·동점규칙은
+          담당자 최종 검수 후 확정됩니다.
         </p>
       </footer>
     </main>

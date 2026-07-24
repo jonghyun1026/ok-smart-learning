@@ -1,13 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Building2, ShieldCheck, Clock, ChevronDown, ChevronRight } from "lucide-react";
+import { AlertTriangle, Building2, ShieldCheck, Clock, ChevronDown, ChevronRight, Table2 } from "lucide-react";
 import { getSupabaseClient } from "@/lib/supabase";
+import type { AiEvaluationDraft } from "@/lib/supabase";
 import { isNegotiationQualified, rankCompanies, calcAreaSubtotal, type CriteriaData } from "@/lib/scoring";
+import { getCompanyColor } from "@/lib/company-colors";
 import { Badge } from "@/components/ui/badge";
 import { DonutGauge } from "@/components/ui/donut-gauge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { CompanyRadarChart } from "@/components/admin/company-radar-chart";
+import { ComparisonBoard } from "@/components/admin/comparison-board";
+import type { DiagnosisCompany } from "@/components/admin/comparison-diagnosis";
+import { KpiTile } from "@/components/ui/kpi-tile";
 
 type ResultRow = {
   company_id: string;
@@ -32,10 +37,21 @@ type EvaluatorRow = {
   updated_at: string;
 };
 
+/**
+ * 소수 점수의 합은 부동소수점 오차로 20.400000000000002처럼 표시될 수 있어, 화면 표시 직전
+ * 소수 둘째 자리까지 반올림한다. (평가 점수는 소수 1자리 입력이므로 소계도 실질 1자리)
+ */
+function fmtScore(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
 export function ResultsDashboard({ refreshKey }: { refreshKey?: number }) {
   const [criteria, setCriteria] = useState<CriteriaData | null>(null);
   const [loading, setLoading] = useState(true);
   const [results, setResults] = useState<ResultRow[]>([]);
+
+  // 제안서 비교 한눈 요약(장표식) — comparison_facts(AI 초안) 소스. 확정 점수와 별개.
+  const [comparisonCompanies, setComparisonCompanies] = useState<DiagnosisCompany[]>([]);
 
   // 작업 2: 행 펼침 상태 + 업체별 평가자 상세 캐시
   const [expandedCompanyId, setExpandedCompanyId] = useState<string | null>(null);
@@ -95,6 +111,37 @@ export function ResultsDashboard({ refreshKey }: { refreshKey?: number }) {
         data,
         merged.map((m) => ({ ...m, totalScore: m.avg_total_score }))
       ) as ResultRow[]
+    );
+
+    // 제안서 비교 한눈 요약용 사실(comparison_facts) 로드. 색상은 업체(entity)에 고정하기 위해
+    // company_id 오름차순으로 배정한다(AI 평가 레포트 탭과 동일 규칙).
+    const [{ data: companyRows }, { data: draftRows }] = await Promise.all([
+      supabase.from("companies").select("id, name, bid_price"),
+      supabase
+        .from("ai_evaluation_drafts")
+        .select("company_id, comparison_facts, status")
+        .eq("status", "completed"),
+    ]);
+    const companyById = new Map(
+      ((companyRows as { id: string; name: string; bid_price: number | string }[] | null) ?? []).map(
+        (c) => [c.id, c]
+      )
+    );
+    const drafts = ((draftRows as AiEvaluationDraft[] | null) ?? [])
+      .filter((d) => d.comparison_facts)
+      .filter((d, idx, arr) => arr.findIndex((x) => x.company_id === d.company_id) === idx)
+      .sort((a, b) => a.company_id.localeCompare(b.company_id));
+    setComparisonCompanies(
+      drafts.map((d, idx) => {
+        const company = companyById.get(d.company_id);
+        return {
+          id: d.company_id,
+          name: company?.name ?? "(삭제된 업체)",
+          bidPrice: Number(company?.bid_price) || 0,
+          color: getCompanyColor(idx, company?.name),
+          facts: d.comparison_facts,
+        };
+      })
     );
   }, []);
 
@@ -194,28 +241,34 @@ export function ResultsDashboard({ refreshKey }: { refreshKey?: number }) {
   return (
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-4 lg:flex-row">
-        <div className="grid flex-1 grid-cols-1 gap-4 sm:grid-cols-3">
-          <div className="flex flex-col justify-between gap-4 rounded-2xl bg-gradient-to-br from-[#F04E23] to-brand-light p-5 text-white shadow-sm">
-            <Building2 size={20} />
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[12px] font-semibold text-white/85">참가업체 수</span>
-              <span className="text-[26px] font-black">{stats.total}개사</span>
-            </div>
-          </div>
-          <div className="flex flex-col justify-between gap-4 rounded-2xl bg-gradient-to-br from-brand-green to-brand-greenLight p-5 text-white shadow-sm">
-            <ShieldCheck size={20} />
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[12px] font-semibold text-white/85">협상적격 업체 수</span>
-              <span className="text-[26px] font-black">{stats.qualified}개사</span>
-            </div>
-          </div>
-          <div className="flex flex-col justify-between gap-4 rounded-2xl bg-gradient-to-br from-brand-amber to-brand-amberLight p-5 text-white shadow-sm">
-            <Clock size={20} />
-            <div className="flex flex-col gap-0.5">
-              <span className="text-[12px] font-semibold text-white/85">필수자격 판정 대기</span>
-              <span className="text-[26px] font-black">{stats.pending}개사</span>
-            </div>
-          </div>
+        <div className="grid flex-1 grid-cols-1 gap-3 sm:grid-cols-3">
+          <KpiTile
+            icon={Building2}
+            label="참가업체 수"
+            value={stats.total}
+            unit="개사"
+            sub="입찰에 참여한 업체 총계"
+            accent="#F55000"
+            soft="#FFF1E9"
+          />
+          <KpiTile
+            icon={ShieldCheck}
+            label="협상적격 업체 수"
+            value={stats.qualified}
+            unit="개사"
+            sub="총점·필수자격 기준 통과"
+            accent="#18875E"
+            soft="#E7F4EE"
+          />
+          <KpiTile
+            icon={Clock}
+            label="필수자격 판정 대기"
+            value={stats.pending}
+            unit="개사"
+            sub="필수자격 심사 전"
+            accent="#E39400"
+            soft="#FFF7DF"
+          />
         </div>
 
         <div className="flex shrink-0 flex-col items-center justify-center gap-3 rounded-2xl border border-brand-border bg-white p-5 shadow-sm">
@@ -225,8 +278,8 @@ export function ResultsDashboard({ refreshKey }: { refreshKey?: number }) {
             max={stats.total || 1}
             size={110}
             strokeWidth={10}
-            color="#2E7D32"
-            trackColor="#F5F3EF"
+            color="#18875E"
+            trackColor="#F0EDE9"
             label={`${Math.round(qualifiedRatio)}%`}
             sublabel={`${stats.qualified}/${stats.total}개사`}
             labelClassName="text-brand-dark"
@@ -234,6 +287,29 @@ export function ResultsDashboard({ refreshKey }: { refreshKey?: number }) {
           />
         </div>
       </section>
+
+      {/* 제안서 비교 (한눈 요약) — 예시 장표식 압축 표. 소스는 AI 초안(comparison_facts)이므로 검증 대상. */}
+      {comparisonCompanies.length > 0 && (
+        <>
+          <div className="flex items-center gap-3 pt-2">
+            <span className="flex items-center gap-2 whitespace-nowrap text-base font-bold text-brand-dark">
+              <Table2 size={17} className="text-brand" />
+              제안서 비교 (한눈 요약)
+            </span>
+            <div className="h-px flex-1 bg-brand-border" />
+          </div>
+          <div className="-mt-2 flex items-start gap-2 rounded-xl border border-brand-amber/40 bg-[#FFF8EC] p-3.5">
+            <AlertTriangle size={16} className="mt-0.5 shrink-0 text-brand-amber" />
+            <p className="text-[12px] leading-relaxed text-brand-dark">
+              아래 표는 <b>AI가 제안서에서 추출한 사실 요약</b>입니다(점수 아님). <b>(담당자 확인)</b> 표시는
+              제안서 밖에서 담당자가 확인·보완한 내용이며, 그 외 항목은 확정 판단 전 원본 제안서로 교차
+              검증해야 합니다. 항목별 심층 비교는 상단{" "}
+              <b className="font-bold text-brand-dark">[AI 평가 레포트]</b> 탭에서 볼 수 있습니다.
+            </p>
+          </div>
+          <ComparisonBoard companies={comparisonCompanies} />
+        </>
+      )}
 
       {/* 업체 간 AI 초안 비교·진단은 상단 [AI 평가 레포트] 탭으로 이동함 — 여기서는 확정 평가 중심으로 본다 */}
       <div className="flex items-center gap-3 pt-2">
@@ -254,28 +330,28 @@ export function ResultsDashboard({ refreshKey }: { refreshKey?: number }) {
           avg_total_score: r.avg_total_score,
           areaScores: r.areaScores,
         }))}
-        title="확정 평가 균형 비교 (레이더 차트)"
+        title="부문별 점수 비교 (확정 평가 평균)"
       />
 
       <div className="text-base font-bold text-brand-dark">업체별 평가 결과 (고득점순)</div>
       <section className="w-full overflow-x-auto rounded-2xl border border-brand-border bg-white shadow-sm">
         <div className="min-w-[1190px]">
-          <div className="flex items-center bg-brand-dark p-3 px-4">
+          <div className="flex items-center border-b border-brand-border bg-brand-alt p-3 px-4">
             <div className="w-[40px] shrink-0" />
-            <div className="w-[60px] shrink-0 text-[13px] font-bold text-white">순위</div>
-            <div className="w-[220px] shrink-0 text-[13px] font-bold text-white">업체명</div>
-            <div className="w-[100px] shrink-0 text-[13px] font-bold text-white">필수자격</div>
-            <div className="w-[90px] shrink-0 text-[13px] font-bold text-white">평가자수</div>
-            <div className="w-[200px] shrink-0 text-[13px] font-bold text-white">
+            <div className="w-[60px] shrink-0 text-[12px] font-black uppercase tracking-wide text-brand-muted">순위</div>
+            <div className="w-[220px] shrink-0 text-[12px] font-black uppercase tracking-wide text-brand-muted">업체명</div>
+            <div className="w-[100px] shrink-0 text-[12px] font-black uppercase tracking-wide text-brand-muted">필수자격</div>
+            <div className="w-[90px] shrink-0 text-[12px] font-black uppercase tracking-wide text-brand-muted">평가자수</div>
+            <div className="w-[200px] shrink-0 text-[12px] font-black uppercase tracking-wide text-brand-muted">
               기술평균 (/{criteria.technicalTotalPoints})
             </div>
-            <div className="w-[130px] shrink-0 text-[13px] font-bold text-white">
+            <div className="w-[130px] shrink-0 text-[12px] font-black uppercase tracking-wide text-brand-muted">
               가격평균 (/{criteria.priceTotalPoints})
             </div>
-            <div className="w-[140px] shrink-0 text-[13px] font-bold text-white">
+            <div className="w-[140px] shrink-0 text-[12px] font-black uppercase tracking-wide text-brand-muted">
               총점평균 (/{criteria.grandTotalPoints})
             </div>
-            <div className="flex-1 text-[13px] font-bold text-white">협상적격</div>
+            <div className="flex-1 text-[12px] font-black uppercase tracking-wide text-brand-muted">협상적격</div>
           </div>
           {results.length === 0 && !loading && (
             <div className="p-4 text-sm text-brand-muted">등록된 업체가 없습니다.</div>
@@ -326,7 +402,7 @@ export function ResultsDashboard({ refreshKey }: { refreshKey?: number }) {
                     <ProgressBar
                       value={r.avg_technical_score ?? 0}
                       max={criteria.technicalTotalPoints || 1}
-                      colorHex="#F04E23"
+                      colorHex="#F55000"
                       className="mt-1"
                     />
                   </div>
@@ -404,7 +480,7 @@ export function ResultsDashboard({ refreshKey }: { refreshKey?: number }) {
                                 </div>
                                 {criteria.technicalAreaCodes.map((code) => (
                                   <div key={code} className="w-[120px] shrink-0 text-[13px] text-brand-dark">
-                                    {calcAreaSubtotal(criteria, ev.scores ?? {}, code)}점
+                                    {fmtScore(calcAreaSubtotal(criteria, ev.scores ?? {}, code))}점
                                   </div>
                                 ))}
                                 <div className="w-[120px] shrink-0 text-[13px] font-bold text-brand-dark">

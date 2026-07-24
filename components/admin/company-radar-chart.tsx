@@ -107,10 +107,10 @@ export function CompanyRadarChart({
   }
 
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-brand-border bg-white p-6 shadow-sm">
+    <section className="flex flex-col gap-4 rounded-card border border-brand-border bg-white p-6 shadow-card">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-0.5">
-          <span className="text-base font-bold text-brand-dark">{title}</span>
+          <span className="text-base font-black tracking-[-0.01em] text-brand-brown">{title}</span>
           <span className="text-[12px] text-brand-muted">
             {description}
             {companies.length > CUSTOM_TOGGLE_THRESHOLD &&
@@ -130,7 +130,7 @@ export function CompanyRadarChart({
                 setCustomSelection(new Set(defaultSelectedIds));
               }
             }}
-            className="w-fit shrink-0 rounded-lg border border-brand-border px-3 py-1.5 text-[12px] font-bold text-brand hover:bg-brand-bg"
+            className="w-fit shrink-0 rounded-control border border-brand-borderStrong px-3 py-1.5 text-[12px] font-bold text-brand transition-colors hover:border-brand hover:bg-brand-highlight"
           >
             {customMode ? `상위 ${AUTO_DISPLAY_LIMIT}개만 보기` : "전체 보기 / 선택"}
           </button>
@@ -141,7 +141,7 @@ export function CompanyRadarChart({
         <div className="flex flex-wrap gap-2">
           {companies.map((c) => {
             const idx = companies.findIndex((x) => x.company_id === c.company_id);
-            const color = colorFor ? colorFor(c.company_id) : getCompanyColor(idx);
+            const color = colorFor ? colorFor(c.company_id) : getCompanyColor(idx, c.company_name);
             const checked = activeIds.has(c.company_id);
             return (
               <button
@@ -182,7 +182,7 @@ export function CompanyRadarChart({
               />
               {activeCompanies.map((c) => {
                 const idx = companies.findIndex((x) => x.company_id === c.company_id);
-                const color = colorFor ? colorFor(c.company_id) : getCompanyColor(idx);
+                const color = colorFor ? colorFor(c.company_id) : getCompanyColor(idx, c.company_name);
                 return (
                   <Radar
                     key={c.company_id}
@@ -204,6 +204,9 @@ export function CompanyRadarChart({
                   const max = payload ? payload.__max : undefined;
                   return [`${value}% (${raw ?? "-"} / ${max ?? "-"}점)`, name];
                 }}
+                contentStyle={{ borderRadius: 9, border: "none", background: "rgba(85,71,74,0.96)", color: "#fff", fontSize: 12 }}
+                labelStyle={{ color: "#fff" }}
+                itemStyle={{ color: "#fff" }}
               />
             </RadarChart>
           </ResponsiveContainer>

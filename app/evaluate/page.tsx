@@ -11,6 +11,7 @@ import { Input, Label, Select } from "@/components/ui/input";
 import { DonutGauge } from "@/components/ui/donut-gauge";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { RationaleBlocks } from "@/components/ui/rationale-blocks";
+import { PageHero } from "@/components/ui/page-hero";
 
 function qualificationBadge(pass: boolean | null | undefined) {
   if (pass === true) return <Badge tone="green">Pass</Badge>;
@@ -190,7 +191,7 @@ export default function EvaluatePage() {
 
   if (!criteria || !totals) {
     return (
-      <main className="px-8 py-10 md:px-16">
+      <main className="mx-auto w-full max-w-[1560px] px-4 py-10 sm:px-6 lg:px-7">
         <p className="text-sm text-brand-muted">평가기준을 불러오는 중...</p>
       </main>
     );
@@ -207,10 +208,16 @@ export default function EvaluatePage() {
   const qualifiedByScore = totals.totalScore >= criteria.settings.negotiationThreshold;
 
   return (
-    <main className="flex flex-col gap-6 px-8 py-10 md:px-16 lg:flex-row lg:gap-8">
-      <div className="flex flex-1 flex-col gap-6">
+    <main className="mx-auto flex w-full max-w-[1560px] flex-col gap-6 px-4 pb-16 pt-6 sm:px-6 lg:px-7">
+      <PageHero
+        eyebrow="평가입력"
+        title="평가 점수 입력"
+        description="평가자 이름과 대상 업체를 선택하고 항목별 점수를 입력하면 우측에서 합계가 실시간으로 갱신됩니다. AI 채점 초안이 있으면 불러와 검토 후 저장할 수 있습니다."
+      />
+      <div className="flex flex-col gap-6 lg:flex-row lg:gap-6">
+      <div className="flex flex-1 flex-col gap-5">
         {/* Control bar */}
-        <div className="flex flex-col gap-5 rounded-xl bg-brand-bg p-5 sm:flex-row">
+        <div className="flex flex-col gap-5 rounded-card border border-brand-border bg-white p-5 shadow-card sm:flex-row">
           <div className="flex w-full shrink-0 flex-col gap-1.5 sm:w-[280px]">
             <Label>평가자 이름 *</Label>
             <Input
@@ -290,8 +297,8 @@ export default function EvaluatePage() {
 
         {/* PF card */}
         {pfArea && (
-          <div className="flex flex-col gap-3 rounded-xl border border-brand-border bg-white p-5">
-            <div className="text-[15px] font-black text-brand-dark">
+          <div className="flex flex-col gap-3 rounded-card border border-brand-border bg-white p-5 shadow-card">
+            <div className="text-[15px] font-black tracking-[-0.01em] text-brand-brown">
               필수 자격 (관리자 판정 · 채점 대상 아님)
             </div>
             {pfArea.items.map((item) => (
@@ -313,13 +320,13 @@ export default function EvaluatePage() {
         {scoreAreasForInput.map((area) => {
           const color = getAreaColor(criteria.areas.filter((a) => a.type === "score").findIndex((a) => a.code === area.code));
           return (
-            <div key={area.code} className="flex flex-col gap-1 rounded-xl border border-brand-border bg-white p-5">
+            <div key={area.code} className="flex flex-col gap-1 rounded-card border border-brand-border bg-white p-5 shadow-card">
               <div className="flex items-center justify-between border-b border-brand-border pb-2.5">
-                <span className="flex items-center gap-2 text-[15px] font-black text-brand-dark">
+                <span className="flex items-center gap-2 text-[15px] font-black tracking-[-0.01em] text-brand-brown">
                   <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: color }} />
                   {area.name}
                 </span>
-                <span className="text-[13px] font-bold" style={{ color }}>
+                <span className="text-[13px] font-black" style={{ color }}>
                   영역 배점 {area.maxPoints}점
                 </span>
               </div>
@@ -341,7 +348,7 @@ export default function EvaluatePage() {
                           className="max-w-[200px]"
                         />
                       </div>
-                      <div className="flex shrink-0 items-center gap-1 rounded-lg border border-brand-border bg-white px-2.5 py-2">
+                      <div className="flex shrink-0 items-center gap-1 rounded-control border border-brand-borderStrong bg-white px-2.5 py-2 transition-[border-color,box-shadow] focus-within:border-brand focus-within:ring-4 focus-within:ring-brand/[0.09]">
                         <input
                           type="number"
                           min={0}
@@ -379,10 +386,10 @@ export default function EvaluatePage() {
 
         {/* Price area (auto-calculated) */}
         {priceAreas.map((area) => (
-          <div key={area.code} className="flex flex-col gap-1 rounded-xl border border-brand-border bg-white p-5">
+          <div key={area.code} className="flex flex-col gap-1 rounded-card border border-brand-border bg-white p-5 shadow-card">
             <div className="flex items-center justify-between border-b border-brand-border pb-2.5">
-              <span className="text-[15px] font-black text-brand-dark">{area.name}</span>
-              <span className="text-[13px] font-bold text-brand">영역 배점 {area.maxPoints}점</span>
+              <span className="text-[15px] font-black tracking-[-0.01em] text-brand-brown">{area.name}</span>
+              <span className="text-[13px] font-black text-brand">영역 배점 {area.maxPoints}점</span>
             </div>
             {area.items.map((item) => (
               <div key={item.itemNo} className="flex items-center justify-between gap-4 py-3">
@@ -395,7 +402,7 @@ export default function EvaluatePage() {
                     ÷ 해당업체입찰가, 소수 둘째자리 반올림
                   </div>
                 </div>
-                <div className="flex shrink-0 items-center gap-1 rounded-lg border border-brand-border bg-white px-2.5 py-2">
+                <div className="flex shrink-0 items-center gap-1 rounded-control border border-brand-borderStrong bg-brand-alt px-2.5 py-2">
                   <span className="text-sm font-bold text-brand-dark">{totals.priceTotal}</span>
                   <span className="text-xs text-brand-muted">/ {item.maxPoints}</span>
                 </div>
@@ -406,13 +413,13 @@ export default function EvaluatePage() {
       </div>
 
       {/* Summary sidebar */}
-      <div className="flex w-full shrink-0 flex-col gap-4 lg:w-[340px]">
-        <div className="flex flex-col items-center gap-4 rounded-xl bg-gradient-to-br from-[#2A232A] to-brand-dark2 p-6">
-          <div className="w-full text-sm font-bold text-white">실시간 점수 합계</div>
+      <div className="flex w-full shrink-0 flex-col gap-4 lg:sticky lg:top-[84px] lg:h-fit lg:w-[340px] lg:self-start">
+        <div className="flex flex-col items-center gap-4 rounded-card bg-gradient-to-br from-[#2A232A] to-brand-dark2 p-6 shadow-card">
+          <div className="w-full text-[11px] font-black uppercase tracking-wide text-white/80">실시간 점수 합계</div>
           <DonutGauge
             value={totals.totalScore}
             max={criteria.grandTotalPoints}
-            color={qualifiedByScore ? "#4CAF50" : "#FF9900"}
+            color={qualifiedByScore ? "#4CAF50" : "#FFAA00"}
             label={String(totals.totalScore)}
             sublabel={`/ ${criteria.grandTotalPoints}점`}
             labelClassName="text-white"
@@ -455,7 +462,7 @@ export default function EvaluatePage() {
               {totals.priceTotal} / {criteria.priceTotalPoints}
             </span>
           </div>
-          <div className="flex w-full items-center justify-between rounded-lg bg-brand px-3.5 py-3">
+          <div className="flex w-full items-center justify-between rounded-control bg-brand px-3.5 py-3 shadow-primary">
             <span className="text-[15px] font-black text-white">총점</span>
             <span className="text-xl font-black text-white">
               {totals.totalScore} / {criteria.grandTotalPoints}
@@ -473,15 +480,16 @@ export default function EvaluatePage() {
 
         {message && (
           <div
-            className={`rounded-lg p-3 text-sm ${
+            className={`rounded-control p-3 text-sm font-semibold ${
               message.type === "success"
-                ? "bg-brand-bg text-brand-green"
-                : "bg-brand-highlight text-brand-red"
+                ? "bg-[#EDF7F0] text-brand-green"
+                : "bg-[#FBEEEC] text-brand-red"
             }`}
           >
             {message.text}
           </div>
         )}
+      </div>
       </div>
     </main>
   );

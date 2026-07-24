@@ -44,7 +44,7 @@ export function CriteriaManager({ onChanged }: { onChanged?: () => void }) {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  const [thresholdInput, setThresholdInput] = useState("85");
+  const [thresholdInput, setThresholdInput] = useState("70");
   const [tiebreak1, setTiebreak1] = useState("");
   const [tiebreak2, setTiebreak2] = useState("");
   const [savingSettings, setSavingSettings] = useState(false);
@@ -304,7 +304,7 @@ export function CriteriaManager({ onChanged }: { onChanged?: () => void }) {
     <div className="flex flex-col gap-6">
       {/* 목표 총점 vs 실제 합계 배너 */}
       <div
-        className={`flex items-center gap-3 rounded-xl border p-4 ${
+        className={`flex items-center gap-3 rounded-card border p-4 shadow-card ${
           totalMismatch
             ? "border-brand-amber/40 bg-[#FFF3DD]"
             : "border-brand-green/30 bg-[#EAF6EC]"
@@ -326,8 +326,8 @@ export function CriteriaManager({ onChanged }: { onChanged?: () => void }) {
 
       {message && (
         <div
-          className={`rounded-lg p-3 text-sm ${
-            message.type === "success" ? "bg-brand-bg text-brand-green" : "bg-brand-highlight text-brand-red"
+          className={`rounded-control p-3 text-sm font-semibold ${
+            message.type === "success" ? "bg-[#EDF7F0] text-brand-green" : "bg-[#FBEEEC] text-brand-red"
           }`}
         >
           {message.text}
@@ -335,8 +335,8 @@ export function CriteriaManager({ onChanged }: { onChanged?: () => void }) {
       )}
 
       {/* 평가 설정 카드 */}
-      <section className="flex flex-col gap-4 rounded-xl border border-brand-border bg-white p-6">
-        <div className="text-base font-bold text-brand-dark">평가 설정</div>
+      <section className="flex flex-col gap-4 rounded-card border border-brand-border bg-white p-6 shadow-card">
+        <div className="text-base font-black tracking-[-0.01em] text-brand-brown">평가 설정</div>
         <div className="flex flex-col gap-5 md:flex-row">
           <div className="flex w-full flex-col gap-1.5 md:w-[220px]">
             <Label>협상적격 기준점수</Label>
@@ -387,8 +387,8 @@ export function CriteriaManager({ onChanged }: { onChanged?: () => void }) {
         const matchesTarget = hasTarget && target === area.maxPoints;
 
         return (
-          <section key={area.code} className="w-full overflow-hidden rounded-xl border border-brand-border bg-white">
-            <div className="flex flex-wrap items-center justify-between gap-3 p-4 px-5" style={{ backgroundColor: `${color}14` }}>
+          <section key={area.code} className="w-full overflow-hidden rounded-card border border-brand-border bg-white shadow-card">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-brand-border p-4 px-5" style={{ backgroundColor: `${color}12` }}>
               <div className="flex items-center gap-2.5">
                 <span className="h-3 w-3 shrink-0 rounded-full" style={{ backgroundColor: color }} />
                 {editingAreaCode === area.code ? (
@@ -409,7 +409,7 @@ export function CriteriaManager({ onChanged }: { onChanged?: () => void }) {
                   </div>
                 ) : (
                   <button className="flex items-center gap-1.5" onClick={() => startEditArea(area)}>
-                    <span className="text-[15px] font-black text-brand-dark">
+                    <span className="text-[15px] font-black tracking-[-0.01em] text-brand-brown">
                       {area.type === "pass_fail" ? `${area.name} (Pass/Fail)` : area.name}
                     </span>
                     <Pencil size={13} className="text-brand-muted" />
@@ -434,7 +434,7 @@ export function CriteriaManager({ onChanged }: { onChanged?: () => void }) {
                 <button
                   onClick={() => deleteArea(area)}
                   disabled={busy}
-                  className="flex items-center gap-1 rounded-lg border border-brand-red/30 px-2.5 py-1.5 text-[12px] font-bold text-brand-red hover:bg-brand-red/10"
+                  className="flex items-center gap-1 rounded-control border border-brand-red/30 px-2.5 py-1.5 text-[12px] font-bold text-brand-red transition-colors hover:bg-brand-red/10"
                 >
                   <Trash2 size={13} />
                   영역 삭제
@@ -444,7 +444,7 @@ export function CriteriaManager({ onChanged }: { onChanged?: () => void }) {
 
             <div className="flex flex-col">
               {area.items.map((item) => (
-                <div key={item.itemNo} className="flex items-center gap-4 border-t border-brand-border p-3.5 px-5">
+                <div key={item.itemNo} className="flex items-center gap-4 border-t border-brand-border p-3.5 px-5 transition-colors hover:bg-brand-hoverSoft">
                   <div className="w-14 shrink-0 text-[13px] font-bold text-brand-muted">{item.itemNo}</div>
 
                   {editingItemNo === item.itemNo ? (
@@ -552,7 +552,7 @@ export function CriteriaManager({ onChanged }: { onChanged?: () => void }) {
 
       {/* 새 영역 추가 */}
       {addingArea ? (
-        <section className="flex flex-col gap-4 rounded-xl border-2 border-dashed border-brand-border p-5">
+        <section className="flex flex-col gap-4 rounded-card border-2 border-dashed border-brand-borderStrong bg-white/60 p-5">
           <div className="flex flex-col gap-4 sm:flex-row">
             <div className="flex flex-1 flex-col gap-1.5">
               <Label>영역명</Label>
@@ -584,7 +584,7 @@ export function CriteriaManager({ onChanged }: { onChanged?: () => void }) {
       ) : (
         <button
           onClick={() => setAddingArea(true)}
-          className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-brand-border p-5 text-sm font-bold text-brand hover:bg-white"
+          className="flex items-center justify-center gap-2 rounded-card border-2 border-dashed border-brand-borderStrong p-5 text-sm font-bold text-brand transition-colors hover:border-brand hover:bg-white"
         >
           <Plus size={16} />
           새 평가 영역 추가

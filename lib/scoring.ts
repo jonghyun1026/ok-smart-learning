@@ -66,7 +66,7 @@ export type CriteriaData = {
 };
 
 const DEFAULT_SETTINGS: EvaluationSettings = {
-  negotiationThreshold: 85,
+  negotiationThreshold: 70,
   tiebreakAreaCodes: ["PRICE"],
 };
 

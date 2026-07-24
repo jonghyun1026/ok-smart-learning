@@ -7,6 +7,7 @@ import { CompanyRegistration } from "@/components/admin/company-registration";
 import { ResultsDashboard } from "@/components/admin/results-dashboard";
 import { CriteriaManager } from "@/components/admin/criteria-manager";
 import { AiEvaluationReport } from "@/components/admin/ai-evaluation-report";
+import { PageHero } from "@/components/ui/page-hero";
 
 type AdminTab = "companies" | "results" | "ai-report" | "criteria";
 
@@ -22,16 +23,14 @@ export default function AdminPage() {
   const [resultsRefreshKey, setResultsRefreshKey] = useState(0);
 
   return (
-    <main className="flex flex-col gap-7 px-8 py-10 md:px-16">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-[22px] font-black text-brand-dark">관리자</h1>
-        <p className="text-[13px] text-brand-muted">
-          참가업체를 등록·판정하고, 종합 평가 결과(협상적격자)를 확인하고, 평가기준(영역/항목/설정)을
-          직접 편집합니다.
-        </p>
-      </div>
+    <main className="mx-auto flex w-full max-w-[1560px] flex-col gap-6 px-4 pb-16 pt-6 sm:px-6 lg:px-7">
+      <PageHero
+        eyebrow="관리자 콘솔"
+        title="관리자"
+        description="참가업체를 등록·판정하고, 종합 평가 결과(협상적격자)를 확인하고, 평가기준(영역/항목/설정)을 직접 편집합니다."
+      />
 
-      <div className="flex gap-2 border-b border-brand-border">
+      <div className="flex gap-1 overflow-x-auto border-b border-brand-border">
         {TABS.map((t) => {
           const Icon = t.icon;
           const active = tab === t.id;
@@ -40,10 +39,10 @@ export default function AdminPage() {
               key={t.id}
               onClick={() => setTab(t.id)}
               className={cn(
-                "flex items-center gap-2 border-b-[3px] -mb-px px-4 py-3 text-sm font-bold whitespace-nowrap transition-colors",
+                "-mb-px flex items-center gap-2 whitespace-nowrap border-b-[3px] px-4 py-3 text-sm font-bold transition-colors",
                 active
                   ? "border-brand text-brand"
-                  : "border-transparent text-brand-muted hover:text-brand-dark"
+                  : "border-transparent text-brand-muted hover:text-brand-brown"
               )}
             >
               <Icon size={16} />

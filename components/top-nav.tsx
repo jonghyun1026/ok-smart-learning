@@ -34,9 +34,9 @@ export function TopNav() {
   }
 
   return (
-    <header className="w-full border-b border-brand-border bg-white">
-      <div className="flex h-[76px] items-center justify-between px-8 md:px-16">
-        <div className="flex items-center gap-5">
+    <header className="sticky top-0 z-40 w-full border-b border-brand-border/80 bg-white/90 backdrop-blur-md">
+      <div className="mx-auto flex h-[68px] max-w-[1560px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-7">
+        <div className="flex min-w-0 items-center gap-4">
           {/* 원본 로고 파일이 1959x351(약 5.58:1 비율)이라 width/height를 실제
               비율에 맞춰 지정하고 object-contain으로 렌더링해 찌그러짐을 방지한다. */}
           <Image
@@ -45,23 +45,23 @@ export function TopNav() {
             width={134}
             height={24}
             priority
-            className="h-6 w-auto object-contain"
+            className="h-6 w-auto shrink-0 object-contain"
           />
-          <div className="h-6 w-px bg-brand-border" />
-          <span className="text-[16px] font-bold text-brand-dark whitespace-nowrap">
+          <div className="hidden h-5 w-px bg-brand-border sm:block" />
+          <span className="hidden truncate text-[14px] font-bold text-brand-brown sm:block">
             OK학당 스마트러닝 위탁운영 계약 평가시스템
           </span>
         </div>
         <button
           onClick={handleLogout}
           disabled={loggingOut}
-          className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full bg-brand-bg px-3.5 py-1.5 text-[12px] font-bold text-brand-muted transition-colors hover:bg-brand-highlight hover:text-brand disabled:opacity-50"
+          className="flex min-h-[34px] shrink-0 items-center gap-1.5 whitespace-nowrap rounded-control border border-brand-borderStrong bg-white px-3 text-[12px] font-extrabold text-brand-brown transition-[transform,color,border-color] duration-150 hover:-translate-y-px hover:border-brand hover:text-brand disabled:opacity-40"
         >
           <LogOut size={13} />
           {loggingOut ? "로그아웃 중..." : "로그아웃"}
         </button>
       </div>
-      <nav className="flex gap-1 px-8 md:px-14">
+      <nav className="mx-auto flex max-w-[1560px] gap-1 overflow-x-auto px-3 sm:px-5 lg:px-6">
         {TABS.map((tab) => {
           const active = tab.href === "/" ? pathname === "/" : pathname?.startsWith(tab.href);
           const Icon = tab.icon;
@@ -70,10 +70,10 @@ export function TopNav() {
               key={tab.href}
               href={tab.href}
               className={cn(
-                "flex items-center gap-2 px-3 py-4 text-sm font-bold border-b-[3px] -mb-px whitespace-nowrap transition-colors",
+                "-mb-px flex items-center gap-2 whitespace-nowrap border-b-[3px] px-3 py-3.5 text-[13.5px] font-bold transition-colors",
                 active
                   ? "border-brand text-brand"
-                  : "border-transparent text-brand-muted hover:text-brand-dark"
+                  : "border-transparent text-brand-muted hover:text-brand-brown"
               )}
             >
               <Icon size={16} />

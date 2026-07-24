@@ -3,11 +3,12 @@ import { cn } from "@/lib/utils";
 
 export type BadgeTone = "neutral" | "green" | "red" | "amber" | "brand";
 
+// OK 디자인 가이드 7.10 — 상태 배지는 소프트 배경 + 상태색 텍스트(색만으로 구분하지 않도록 라벨 병기)
 const toneClasses: Record<BadgeTone, string> = {
   neutral: "bg-brand-bg text-brand-muted",
-  green: "bg-brand-bg text-brand-green",
-  red: "bg-brand-bg text-brand-red",
-  amber: "bg-brand-bg text-brand-amber",
+  green: "bg-[#E7F4EE] text-brand-green",
+  red: "bg-[#FBEEEC] text-brand-red",
+  amber: "bg-[#FFF7DF] text-[#B7791F]",
   brand: "bg-brand text-white",
 };
 

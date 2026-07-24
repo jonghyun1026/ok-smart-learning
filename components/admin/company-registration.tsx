@@ -431,8 +431,8 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <section className="flex w-full flex-col gap-5 rounded-xl border border-brand-border bg-white p-7">
-        <div className="text-base font-bold text-brand-dark">신규 업체 등록</div>
+      <section className="flex w-full flex-col gap-5 rounded-card border border-brand-border bg-white p-7 shadow-card">
+        <div className="text-base font-black tracking-[-0.01em] text-brand-brown">신규 업체 등록</div>
 
         <div className="flex flex-col gap-5 md:flex-row">
           <div className="flex flex-1 flex-col gap-1.5">
@@ -456,7 +456,7 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
 
         <div className="flex flex-col gap-10 md:flex-row">
           <div className="flex w-full shrink-0 flex-col gap-3.5 md:w-[420px]">
-            <div className="text-[13px] font-bold text-brand-dark">필수자격 판정 *</div>
+            <div className="text-[13px] font-black text-brand-brown">필수자격 판정 *</div>
             <div className="flex flex-col gap-1.5">
               <Label>0-1. 계약결격사유 없음</Label>
               <Select value={q1} onChange={(e) => setQ1(e.target.value as QualChoice)}>
@@ -476,7 +476,7 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
           </div>
 
           <div className="flex flex-1 flex-col gap-2.5">
-            <div className="text-[13px] font-bold text-brand-dark">
+            <div className="text-[13px] font-black text-brand-brown">
               제출서류 업로드 (.pdf, .docx, .jpg, .png{" "}
               <span className="font-normal text-brand-muted">
                 일부 항목은 .xlsx 가능 · 제안서 외 6종은 파일 여러 개 첨부 가능 · 파일당 최대{" "}
@@ -500,7 +500,7 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
                     }
                     setProposalFile(picked);
                   }}
-                  className="w-full rounded-lg border border-brand-border bg-white px-2.5 py-1.5 text-[12px] text-brand-dark file:mr-2 file:rounded-md file:border-0 file:bg-brand-bg file:px-2.5 file:py-1 file:text-[12px] file:font-bold file:text-brand focus:outline-none focus:ring-2 focus:ring-brand/40"
+                  className="w-full rounded-control border border-brand-borderStrong bg-white px-2.5 py-1.5 text-[12px] text-brand-dark transition-[border-color,box-shadow] file:mr-2 file:rounded-md file:border-0 file:bg-brand-highlight file:px-2.5 file:py-1 file:text-[12px] file:font-bold file:text-brand focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/[0.09]"
                 />
                 {proposalFile && (
                   <span className="text-[11px] text-brand-muted">선택됨: {proposalFile.name}</span>
@@ -519,7 +519,7 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
                       warnOversized(oversized);
                       setDocFiles((prev) => ({ ...prev, [doc.slug]: ok }));
                     }}
-                    className="w-full rounded-lg border border-brand-border bg-white px-2.5 py-1.5 text-[12px] text-brand-dark file:mr-2 file:rounded-md file:border-0 file:bg-brand-bg file:px-2.5 file:py-1 file:text-[12px] file:font-bold file:text-brand focus:outline-none focus:ring-2 focus:ring-brand/40"
+                    className="w-full rounded-control border border-brand-borderStrong bg-white px-2.5 py-1.5 text-[12px] text-brand-dark transition-[border-color,box-shadow] file:mr-2 file:rounded-md file:border-0 file:bg-brand-highlight file:px-2.5 file:py-1 file:text-[12px] file:font-bold file:text-brand focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/[0.09]"
                   />
                   {(docFiles[doc.slug]?.length ?? 0) > 0 && (
                     <span className="text-[11px] text-brand-muted">
@@ -540,10 +540,10 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
 
         {formMessage && (
           <div
-            className={`rounded-lg p-3 text-sm ${
+            className={`rounded-control p-3 text-sm font-semibold ${
               formMessage.type === "success"
-                ? "bg-brand-bg text-brand-green"
-                : "bg-brand-highlight text-brand-red"
+                ? "bg-[#EDF7F0] text-brand-green"
+                : "bg-[#FBEEEC] text-brand-red"
             }`}
           >
             {formMessage.text}
@@ -551,22 +551,22 @@ export function CompanyRegistration({ onChanged }: { onChanged?: () => void }) {
         )}
       </section>
 
-      <div className="text-base font-bold text-brand-dark">
+      <div className="text-base font-black tracking-[-0.01em] text-brand-brown">
         등록된 참가업체 목록 ({companies.length}개사)
       </div>
-      <section className="w-full overflow-x-auto rounded-xl border border-brand-border bg-white">
+      <section className="w-full overflow-x-auto rounded-card border border-brand-border bg-white shadow-card">
         <div className="min-w-[1520px]">
-          <div className="flex bg-brand-dark p-3 px-4">
+          <div className="flex border-b border-brand-border bg-brand-alt p-3 px-4 [&>div]:text-[11px] [&>div]:font-black [&>div]:uppercase [&>div]:tracking-wide [&>div]:text-brand-muted">
             <div className="w-[28px] shrink-0" />
-            <div className="w-[200px] shrink-0 text-[13px] font-bold text-white">업체명</div>
-            <div className="w-[140px] shrink-0 text-[13px] font-bold text-white">입찰가격</div>
-            <div className="w-[80px] shrink-0 text-[13px] font-bold text-white">제출서류</div>
-            <div className="w-[170px] shrink-0 text-[13px] font-bold text-white">제안서 링크</div>
-            <div className="w-[100px] shrink-0 text-[13px] font-bold text-white">필수자격 0-1</div>
-            <div className="w-[100px] shrink-0 text-[13px] font-bold text-white">필수자격 0-2</div>
-            <div className="w-[170px] shrink-0 text-[13px] font-bold text-white">AI 채점</div>
-            <div className="w-[110px] shrink-0 text-[13px] font-bold text-white">등록일</div>
-            <div className="flex-1 text-[13px] font-bold text-white">관리</div>
+            <div className="w-[200px] shrink-0">업체명</div>
+            <div className="w-[140px] shrink-0">입찰가격</div>
+            <div className="w-[80px] shrink-0">제출서류</div>
+            <div className="w-[170px] shrink-0">제안서 링크</div>
+            <div className="w-[100px] shrink-0">필수자격 0-1</div>
+            <div className="w-[100px] shrink-0">필수자격 0-2</div>
+            <div className="w-[170px] shrink-0">AI 채점</div>
+            <div className="w-[110px] shrink-0">등록일</div>
+            <div className="flex-1">관리</div>
           </div>
           {companies.length === 0 && !loading && (
             <div className="p-4 text-sm text-brand-muted">등록된 업체가 없습니다.</div>

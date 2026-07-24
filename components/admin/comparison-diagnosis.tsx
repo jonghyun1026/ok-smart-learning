@@ -3,7 +3,6 @@
 import { useMemo } from "react";
 import {
   AlertTriangle,
-  BadgeCheck,
   Boxes,
   CheckCircle2,
   GraduationCap,
@@ -27,6 +26,7 @@ import {
   type ContentMetric,
   type FactStatus,
 } from "@/lib/comparison";
+import { ContentMetricBars, ContentCompositionBars } from "@/components/admin/content-metric-bars";
 
 export type DiagnosisCompany = {
   id: string;
@@ -36,7 +36,7 @@ export type DiagnosisCompany = {
   facts: ComparisonFacts | null;
 };
 
-const CARD = "rounded-2xl border border-brand-border bg-white p-6 shadow-sm";
+const CARD = "rounded-card border border-brand-border bg-white p-6 shadow-card";
 
 function SectionHeader({
   icon: Icon,
@@ -49,7 +49,7 @@ function SectionHeader({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="flex items-center gap-2 text-[15px] font-black text-brand-dark">
+      <span className="flex items-center gap-2 text-[15px] font-black tracking-[-0.01em] text-brand-brown">
         <Icon size={17} className="text-brand" />
         {title}
       </span>
@@ -76,11 +76,6 @@ function unionMetrics(companies: DiagnosisCompany[]): ContentMetric[] {
     }
   }
   return order.map((k) => meta.get(k)!);
-}
-
-function metricValue(c: DiagnosisCompany, key: string): number | null {
-  const m = c.facts?.content.metrics.find((x) => x.key === key);
-  return m ? m.value : null;
 }
 
 function StatusIcon({ status }: { status: FactStatus }) {
@@ -145,7 +140,7 @@ export function ComparisonDiagnosis({
 
   if (withFacts.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-brand-border bg-brand-bg p-10 text-center">
+      <div className="flex flex-col items-center gap-2 rounded-card border border-dashed border-brand-border bg-brand-bg p-10 text-center">
         <Sparkles size={22} className="text-brand-muted" />
         <p className="text-sm font-bold text-brand-dark">아직 구조화된 비교 사실이 없습니다.</p>
         <p className="max-w-md text-xs leading-relaxed text-brand-muted">
@@ -178,52 +173,9 @@ export function ComparisonDiagnosis({
           desc="'건수'는 마이크로러닝 포함 여부에 따라 크게 달라지므로, 실질 학습량을 나타내는 총 학습시간을 함께 봅니다. (각 지표는 최댓값 대비 막대 길이)"
         />
 
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-          {metrics.map((metric) => {
-            const values = companies.map((c) => metricValue(c, metric.key));
-            const max = Math.max(1, ...values.map((v) => v ?? 0));
-            const isHours = metric.key === "hours";
-            return (
-              <div
-                key={metric.key}
-                className={cn(
-                  "flex flex-col gap-3 rounded-xl border p-4",
-                  isHours ? "border-brand/30 bg-[#FFF4F0]" : "border-brand-border"
-                )}
-              >
-                <span className="flex items-center gap-1.5 text-[12.5px] font-bold text-brand-dark">
-                  {isHours && <BadgeCheck size={14} className="text-brand" />}
-                  {metric.label}
-                </span>
-                <div className="flex flex-col gap-2.5">
-                  {companies.map((c) => {
-                    const v = metricValue(c, metric.key);
-                    return (
-                      <div key={c.id} className="flex flex-col gap-1">
-                        <div className="flex items-center justify-between text-[12px]">
-                          <span className="truncate font-bold text-brand-dark">{c.name}</span>
-                          <span className="shrink-0 font-black text-brand-dark">
-                            {v === null ? "—" : `${fmt(v)}${metric.unit === "시간" ? "" : ""}`}
-                            <span className="ml-0.5 text-[10px] font-medium text-brand-muted">{v === null ? "" : metric.unit}</span>
-                          </span>
-                        </div>
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-brand-bg">
-                          <div
-                            className="h-full rounded-full"
-                            style={{
-                              width: `${((v ?? 0) / max) * 100}%`,
-                              backgroundColor: c.color,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <ContentMetricBars companies={companies} metrics={metrics} />
+
+        <ContentCompositionBars companies={companies} />
 
         {/* 콘텐츠 구성 성격 + 분야별 */}
         <div className={cn("grid grid-cols-1 gap-4", gridColsClass)}>
@@ -236,17 +188,58 @@ export function ComparisonDiagnosis({
               <p className="rounded-lg bg-brand-bg p-2.5 text-[12px] leading-relaxed text-brand-dark">
                 {c.facts!.content.typeNote}
               </p>
-              <div className="flex flex-col gap-1.5">
-                <span className="text-[11px] font-black uppercase tracking-wide text-brand-muted">분야별 과정</span>
-                {c.facts!.content.fields.map((f) => (
-                  <div key={f.name} className="flex items-baseline justify-between gap-2 text-[12.5px]">
-                    <span className="font-bold text-brand-dark">{f.name}</span>
-                    <span className="shrink-0 font-black text-brand-dark">
-                      {f.courses === null ? "제공(건수 미집계)" : `${fmt(f.courses)}과정`}
-                    </span>
+              {(() => {
+                const fields = c.facts!.content.fields;
+                const hasTrack = fields.some((f) => f.track);
+                const groups: { track?: "elearning" | "micro"; label: string }[] = hasTrack
+                  ? [
+                      { track: "elearning", label: "이러닝 과정" },
+                      { track: "micro", label: "마이크로러닝" },
+                    ]
+                  : [{ label: "분야별 과정" }];
+                return (
+                  <div className="flex flex-col gap-3">
+                    {groups.map(({ track, label }) => {
+                      const list = fields.filter((f) => (track ? f.track === track : true));
+                      if (list.length === 0) return null;
+                      const subtotal = list.reduce((s, f) => s + (f.courses ?? 0), 0);
+                      return (
+                        <div key={label} className="flex flex-col gap-1.5">
+                          <span className="flex items-baseline justify-between gap-2 border-b border-brand-border/70 pb-1 text-[11px] font-black uppercase tracking-wide text-brand-muted">
+                            <span>
+                              {label}
+                              <span className="ml-1 normal-case text-brand-muted/80">
+                                ({list.length}개 분야)
+                              </span>
+                            </span>
+                            {track && (
+                              <span className="text-brand-brown">{fmt(subtotal)}과정</span>
+                            )}
+                          </span>
+                          <div
+                            className="flex max-h-[184px] flex-col gap-1.5 overflow-y-auto overscroll-contain pr-1"
+                            tabIndex={0}
+                            role="group"
+                            aria-label={`${c.name} ${label} 분야별 과정 수`}
+                          >
+                            {list.map((f, i) => (
+                              <div
+                                key={`${f.name}-${i}`}
+                                className="flex items-baseline justify-between gap-2 text-[12.5px]"
+                              >
+                                <span className="font-bold text-brand-dark">{f.name}</span>
+                                <span className="shrink-0 font-black text-brand-dark">
+                                  {f.courses === null ? "제공(건수 미집계)" : `${fmt(f.courses)}과정`}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
+                );
+              })()}
               {c.facts!.content.verified && (
                 <span className="flex items-center gap-1 text-[11px] font-bold text-brand-green">
                   <CheckCircle2 size={12} /> 원본 파일 대조 검증됨
@@ -470,12 +463,11 @@ export function ComparisonDiagnosis({
           {withFacts.map((c) => {
             const d = c.facts!.diagnosis;
             return (
-              <div
-                key={c.id}
-                className="flex flex-col gap-3 rounded-2xl border border-brand-border p-5 shadow-sm"
-                style={{ borderTop: `4px solid ${c.color}` }}
-              >
-                <span className="text-[15px] font-black text-brand-dark">{c.name}</span>
+              <div key={c.id} className="flex flex-col gap-3 rounded-xl border border-brand-border p-5">
+                <span className="flex items-center gap-2 text-[15px] font-black text-brand-dark">
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: c.color }} />
+                  {c.name}
+                </span>
 
                 <div className="flex flex-col gap-1.5 rounded-lg bg-[#EDF7F0] p-3">
                   <span className="flex items-center gap-1 text-[11px] font-black uppercase tracking-wide text-brand-green">

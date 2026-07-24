@@ -22,10 +22,16 @@ export type ContentMetric = {
   unit: string;
 };
 
-/** 분야별 과정 수 (예: 생성형 AI 153, 법정필수교육 131) */
+/**
+ * 분야별 과정 수 (예: 생성형 AI 153, 법정필수교육 131).
+ * track: 이러닝 과정 vs 마이크로러닝 구분. 원본 과정리스트 엑셀 전수 집계 기준이며,
+ * 휴넷은 제안서가 시트로 분리 제공, 유밥은 과정 학습시간 15분 이하를 마이크로러닝으로 구분한다.
+ * (미지정 시 track 없음 — 구버전 데이터 호환)
+ */
 export type ContentField = {
   name: string;
   courses: number | null;
+  track?: "elearning" | "micro";
   note?: string;
 };
 

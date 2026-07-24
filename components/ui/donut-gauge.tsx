@@ -5,7 +5,7 @@ export function DonutGauge({
   max,
   size = 150,
   strokeWidth = 12,
-  color = "#FF9900",
+  color = "#FFAA00",
   trackColor = "rgba(255,255,255,0.12)",
   label,
   sublabel,
